@@ -41,31 +41,4 @@
   <div id="status"></div>
 </div>
 <div id="content"><div id="map"></div></div>
-<input type="file" id="file-pdf" accept=".pdf" style="display:none" onchange="handlePdfLoad(event)"/>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-let map = L.map('map').setView([53.4837, 18.7536], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(map);
-
-async function handlePdfLoad(e) {
-    const file = e.target.files[0];
-    if(!file) return;
-    document.getElementById('status').innerText = '⏳ Przetwarzanie PDF...';
-    
-    const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
-    let fullText = '';
-    for(let i=1; i<=pdf.numPages; i++){
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        content.items.forEach(it => fullText += it.str + ' ');
-    }
-    document.getElementById('status').innerText = '✓ PDF wczytany. (System gotowy do pracy)';
-    alert('PDF wczytany. Teraz dodaj obiekty ręcznie lub użyj funkcji geokodowania.');
-}
-function switchTab(t) { alert('Przełączono na: ' + t); }
-</script>
-</body>
-</html>
+<!-- (DOPISZEMY TUTAJ RESZTĘ KODU W NASTĘPNYCH WIADOMOŚCIACH) -->
