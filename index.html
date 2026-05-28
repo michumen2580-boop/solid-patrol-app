@@ -2,167 +2,217 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>🔑 KEYMASTER – SOLID PATROL</title>
-<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>SOLID PATROL 110 – Grudziądz</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css"/>
-
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Courier New',monospace;background:#0d0d1a;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-  
-  /* Brand Header */
-  #brand-header {background:#111122;border-bottom:3px solid #e53935;padding:12px 20px;display:flex;align-items:center;gap:15px;flex-shrink:0}
-  #brand-header img {height:45px;border-radius:4px;object-fit:contain}
-  #brand-header h1 {font-size:20px;font-weight:900;color:#fff;letter-spacing:1px;font-family:sans-serif;margin:0}
-  .solid-red {color:#e53935}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Courier New',monospace;background:#0d0d1a;color:#fff;display:flex;flex-direction:column}
 
-  #topbar{background:#1a1a2e;border-bottom:1px solid #333;padding:10px 14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
-  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  button{font-family:'Courier New',monospace;cursor:pointer;border:none;border-radius:6px;font-weight:700;transition:opacity .15s}
-  button:disabled{opacity:.4;cursor:not-allowed}
-  .tab-btn{background:#0d0d1a;color:#fff;border:1px solid #e53935;padding:5px 12px;font-size:12px}
-  .tab-btn.active{background:#e53935}
-  .view-btn{background:transparent;color:#888;border:1px solid #2a2a4a;padding:5px 10px;font-size:12px}
-  .view-btn.active{background:#2a2a4a;color:#fff}
-  #search{flex:1;min-width:150px;background:#0d0d1a;border:1px solid #2a2a4a;color:#fff;padding:7px 12px;border-radius:8px;font-family:'Courier New',monospace;font-size:13px;outline:none}
-  .action-btn{padding:7px 13px;font-size:13px;border-radius:8px}
-  .btn-load{background:#16213e;color:#4fc3f7;border:1px solid #4fc3f7}
-  .btn-save{background:#16213e;color:#81c784;border:1px solid #81c784}
-  
-  #dropdown{position:relative;display:inline-block}
-  #dropdown-menu{display:none;position:absolute;top:110%;right:0;z-index:9999;background:#1a1a2e;border:1px solid #333;border-radius:8px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.6);min-width:175px}
-  #dropdown-menu.open{display:block}
-  #dropdown-menu button{display:block;width:100%;padding:10px 16px;background:transparent;color:#fff;text-align:left;font-size:13px;border-bottom:1px solid #222;border-radius:0}
-  #dropdown-menu button:hover{background:#2a2a4a}
-  
-  #status{font-size:11px;color:#aaa;min-height:14px}
-  #status .spin{color:#e85d04}
-  
-  #content{flex:1;overflow:hidden;position:relative}
-  #map{height:100%;width:100%}
-  
-  /* Map Overlays */
-  .map-search-container {background:rgba(26,26,46,0.9);border:2px solid #e53935;border-radius:6px;padding:6px;box-shadow:0 4px 12px rgba(0,0,0,0.6);position:relative;pointer-events:auto;}
-  #map-search-input {background:#0d0d1a;color:#fff;border:1px solid #333;padding:8px 12px;border-radius:4px;outline:none;width:240px;font-family:'Courier New',monospace;font-size:13px;}
-  #map-search-results {position:absolute;top:100%;left:0;right:0;background:#1a1a2e;border:1px solid #333;border-top:none;max-height:200px;overflow-y:auto;display:none;z-index:1000;}
-  .res-item {padding:10px;border-bottom:1px solid #222;cursor:pointer;font-size:12px;color:#ccc;line-height:1.4}
-  .res-item b {color:#e53935;font-size:14px;}
-  .res-item:hover {background:#2a2a4a;color:#fff;}
+/* ── NAGŁÓWEK LOGO ── */
+#brand{background:linear-gradient(135deg,#0a0a0a 0%,#1a0000 100%);border-bottom:3px solid #c62828;padding:8px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+#brand img{height:52px;width:auto;border-radius:4px;object-fit:contain;flex-shrink:0}
+#brand-text{display:flex;flex-direction:column;gap:1px}
+#brand-text .b1{font-family:sans-serif;font-size:19px;font-weight:900;color:#ffd600;letter-spacing:2px;line-height:1}
+#brand-text .b2{font-family:sans-serif;font-size:11px;font-weight:700;color:#aaa;letter-spacing:3px}
+#brand-text .b3{font-family:sans-serif;font-size:10px;color:#c62828;font-weight:700;letter-spacing:1px}
 
-  #add-pin-btn{position:absolute;top:10px;right:10px;z-index:999;background:#1a1a2e;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-family:'Courier New',monospace;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer}
-  #add-pin-btn.active{background:#e53935}
-  
-  #gps-btn{position:absolute;bottom:20px;right:10px;z-index:999;background:#2196F3;color:#fff;border:2px solid #fff;border-radius:50%;width:44px;height:44px;font-size:20px;box-shadow:0 4px 10px rgba(0,0,0,.5);cursor:pointer;display:flex;align-items:center;justify-content:center}
-  
-  /* List view */
-  #list-view{height:100%;overflow-y:auto;padding:14px;display:none}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  thead tr{border-bottom:2px solid #555}
-  th{text-align:left;padding:8px;color:#aaa;font-weight:700}
-  tbody tr{border-bottom:1px solid #1a1a30;background:#0d0d1a}
-  tbody tr:nth-child(even){background:#111125}
-  td{padding:8px}
-  .td-nr{font-weight:900;font-size:14px}
-  .td-addr{color:#ccc}
-  .row-ok .td-nr {color:#81c784} 
-  .row-err .td-nr {color:#e53935}
-  .btn-sm{background:#333;color:#fff;padding:4px 6px;font-size:11px;border-radius:4px;margin-right:4px}
-  
-  /* Modal */
-  #modal-overlay, #no-data-overlay {display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;padding:16px}
-  #modal-overlay.open, #no-data-overlay.open {display:flex}
-  .modal-box {background:#1a1a2e;border-radius:12px;padding:20px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.8);border:1px solid #333}
-  .modal-box h3{color:#e53935;margin-bottom:14px;font-size:16px}
-  .field{margin-bottom:10px}
-  .field label{display:block;font-size:11px;color:#aaa;margin-bottom:3px}
-  .field input{width:100%;background:#0d0d1a;border:1px solid #333;color:#fff;padding:7px 10px;border-radius:6px;font-family:'Courier New',monospace;font-size:13px;outline:none}
-  .modal-btns{display:flex;gap:8px;margin-top:15px}
-  .modal-btns button{flex:1;padding:10px;border-radius:6px;font-size:13px}
-  
-  /* Popups */
-  .leaflet-popup-content-wrapper{background:#1a1a2e;color:#fff;border:2px solid #e53935;border-radius:8px;padding:0;overflow:hidden}
-  .leaflet-popup-content{margin:0;min-width:220px}
-  .leaflet-popup-tip{background:#e53935}
-  .pop-header{background:#e53935;padding:8px 12px;color:#fff;font-weight:bold;display:flex;align-items:center;gap:8px}
-  .pop-nr{font-size:16px;background:#fff;color:#e53935;padding:2px 6px;border-radius:4px}
-  .pop-body{padding:12px;font-family:sans-serif;font-size:13px;line-height:1.5;color:#ddd}
-  .nav-btn{display:block;width:100%;background:#2196F3;color:#fff;text-align:center;padding:8px;border-radius:6px;margin-top:10px;text-decoration:none;font-weight:bold;font-size:14px}
-  .action-row{display:flex;justify-content:space-between;margin-top:10px;border-top:1px solid #333;padding-top:10px}
+/* ── TOPBAR ── */
+#topbar{background:#111122;border-bottom:1px solid #222;padding:8px 12px;display:flex;flex-direction:column;gap:7px;flex-shrink:0}
+.row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+button{font-family:'Courier New',monospace;cursor:pointer;border:none;border-radius:6px;font-weight:700;font-size:12px;transition:opacity .15s;white-space:nowrap}
+button:disabled{opacity:.35;cursor:not-allowed}
+.tab-btn{background:#0d0d1a;color:#fff;border:1px solid #c62828;padding:6px 12px}
+.tab-btn.active{background:#c62828}
+.view-btn{background:transparent;color:#777;border:1px solid #222;padding:5px 9px}
+.view-btn.active{background:#222;color:#fff}
+#search-bar{flex:1;min-width:130px;background:#0d0d1a;border:1px solid #333;color:#fff;padding:7px 11px;border-radius:8px;font-family:'Courier New',monospace;font-size:13px;outline:none}
+#search-bar::placeholder{color:#555}
+.abtn{padding:6px 11px;border-radius:7px}
+.abtn-blue{background:#0d2137;color:#4fc3f7;border:1px solid #4fc3f7}
+.abtn-gold{background:#1a1200;color:#ffd600;border:1px solid #ffd600}
+.abtn-green{background:#0a1f0a;color:#81c784;border:1px solid #81c784}
+#ddwrap{position:relative;display:inline-block}
+#ddmenu{display:none;position:absolute;top:110%;right:0;z-index:9999;background:#111122;border:1px solid #333;border-radius:8px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.8);min-width:210px}
+#ddmenu.open{display:block}
+#ddmenu button{display:block;width:100%;padding:11px 16px;background:transparent;color:#fff;text-align:left;font-size:13px;border-bottom:1px solid #1a1a1a;border-radius:0}
+#ddmenu button:hover{background:#1e1e2e}
+#statusbar{font-size:11px;color:#888;min-height:13px;padding-left:2px}
+#progwrap{background:#0d0d1a;border-radius:3px;height:4px;overflow:hidden;display:none;margin-top:2px}
+#progbar{height:100%;background:#c62828;width:0%;transition:width .4s ease}
+
+/* ── CONTENT ── */
+#content{flex:1;overflow:hidden;position:relative;min-height:0}
+#map{height:100%;width:100%;display:block}
+
+/* Wyszukiwarka na mapie – styl jak na screenshotach */
+.mapsearch-wrap{background:rgba(10,10,20,0.95);border:2px solid #c62828;border-radius:10px;overflow:visible;box-shadow:0 4px 16px rgba(0,0,0,.7);pointer-events:auto;position:relative;width:270px}
+#ms-input{width:100%;background:transparent;color:#fff;border:none;padding:10px 14px;font-family:'Courier New',monospace;font-size:14px;outline:none}
+#ms-input::placeholder{color:#555}
+#ms-results{display:none;position:absolute;top:100%;left:-2px;right:-2px;background:#0d0d1a;border:2px solid #c62828;border-top:none;border-radius:0 0 10px 10px;max-height:260px;overflow-y:auto;z-index:2000}
+.msri{padding:11px 14px;border-bottom:1px solid #1a1a2e;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.msri:last-child{border-bottom:none}
+.msri:hover{background:#1a1a2e}
+.msri-label{font-size:10px;color:#c62828;font-weight:700;letter-spacing:1px}
+.msri-name{font-size:14px;font-weight:700;color:#fff}
+.msri-addr{font-size:12px;color:#888;font-family:sans-serif}
+
+/* Przyciski na mapie */
+#add-btn{position:absolute;top:10px;right:10px;z-index:998;background:#111122;color:#fff;border:2px solid #555;border-radius:8px;padding:8px 13px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.5);cursor:pointer}
+#add-btn.active{background:#c62828;border-color:#c62828}
+#gps-btn{position:absolute;bottom:26px;right:10px;z-index:998;background:#1565C0;color:#fff;border:2px solid #fff;border-radius:50%;width:46px;height:46px;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+
+/* ── LISTA ── */
+#list-view{height:100%;overflow-y:auto;padding:12px;display:none}
+#list-empty{color:#444;text-align:center;margin-top:50px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{border-bottom:2px solid #333;position:sticky;top:0;background:#111122;z-index:10}
+th{padding:8px 7px;color:#888;font-weight:700;text-align:left;font-size:11px;letter-spacing:.5px}
+tbody tr{border-bottom:1px solid #151525}
+tbody tr:hover{background:#151530}
+td{padding:8px 7px;vertical-align:middle}
+.td-nr-ok{font-weight:900;font-size:14px;color:#66bb6a}
+.td-nr-err{font-weight:900;font-size:14px;color:#ef5350}
+.td-name{font-weight:700;font-size:13px;color:#fff}
+.td-addr{color:#888;font-size:12px;font-family:sans-serif}
+.td-gps-ok{color:#66bb6a;font-size:10px;font-weight:700}
+.td-gps-err{color:#ef5350;font-size:10px;font-weight:700}
+.btn-sm{background:#1e1e3a;color:#ccc;padding:5px 7px;font-size:11px;border-radius:4px;border:none;cursor:pointer;margin-right:2px}
+.btn-sm-red{background:#3a1010;color:#ef9a9a}
+
+/* ── POPUP MAPY ── */
+.leaflet-popup-content-wrapper{background:#0d0d1a;color:#fff;border:2px solid #c62828;border-radius:10px;padding:0;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.8)}
+.leaflet-popup-content{margin:0;min-width:230px;max-width:280px}
+.leaflet-popup-tip{background:#c62828}
+.pop-head{background:#c62828;padding:9px 13px;display:flex;align-items:center;gap:9px}
+.pop-badge{background:#fff;color:#c62828;font-size:14px;font-weight:900;padding:2px 8px;border-radius:5px;font-family:'Courier New',monospace;flex-shrink:0}
+.pop-title{font-family:sans-serif;font-size:13px;font-weight:700;color:#fff;line-height:1.2}
+.pop-body{padding:11px 13px;font-family:sans-serif;font-size:13px;line-height:1.6;color:#ccc}
+.pop-addr{color:#fff;font-size:13px;margin-bottom:6px}
+.pop-gps{color:#666;font-size:10px;font-family:'Courier New',monospace}
+.pop-ts{color:#555;font-size:10px;margin-top:4px;border-top:1px solid #1a1a2e;padding-top:6px}
+.pop-nav{display:block;width:100%;background:#1565C0;color:#fff;text-align:center;padding:9px;border-radius:6px;margin-top:10px;text-decoration:none;font-weight:700;font-size:14px;font-family:sans-serif}
+.pop-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid #1a1a2e}
+.pop-actions button{flex:1;padding:8px;border-radius:6px;font-size:12px;font-family:sans-serif;cursor:pointer;font-weight:700;border:none}
+.pop-edit{background:#1a237e;color:#90caf9}
+.pop-del{background:#3e0000;color:#ef9a9a}
+
+/* ── MODAŁY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:3000;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.mbox{background:#111122;border-radius:12px;padding:20px;width:100%;max-width:370px;box-shadow:0 8px 40px rgba(0,0,0,.9);border:1px solid #2a2a3a}
+.mbox h3{color:#c62828;margin-bottom:14px;font-size:16px}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:11px;color:#888;margin-bottom:4px;letter-spacing:.5px}
+.field input{width:100%;background:#0d0d1a;border:1px solid #2a2a3a;color:#fff;padding:8px 11px;border-radius:6px;font-family:'Courier New',monospace;font-size:13px;outline:none;transition:border-color .2s}
+.field input:focus{border-color:#c62828}
+.mbtns{display:flex;gap:8px;margin-top:15px}
+.mbtns button{flex:1;padding:10px;border-radius:7px;font-size:13px;font-family:'Courier New',monospace;font-weight:700;border:none;cursor:pointer}
+.mbtn-cancel{background:#1e1e2e;color:#aaa}
+.mbtn-save{background:#c62828;color:#fff}
+#mgps-info{font-size:11px;color:#555;margin-bottom:6px;font-family:'Courier New',monospace}
+
+/* Overlay pusty */
+#nodata-overlay .mbox{text-align:center;max-width:340px}
+#nodata-overlay .mbox p{font-size:13px;color:#888;margin-bottom:18px;font-family:sans-serif;line-height:1.5}
+.big-btn{width:100%;padding:13px;font-size:14px;border-radius:8px;font-family:'Courier New',monospace;font-weight:700;border:none;cursor:pointer;margin-bottom:9px}
 </style>
 </head>
 <body>
 
-<div id="brand-header">
+<!-- ══ NAGŁÓWEK ══ -->
+<div id="brand">
   <img src="10679.png" alt="Logo" onerror="this.style.display='none'">
-  <h1><span class="solid-red">SOLID</span> PATROL 110 GRUDZIĄDZ</h1>
+  <div id="brand-text">
+    <div class="b1">SOLID PATROL 110</div>
+    <div class="b2">GRUDZIĄDZ</div>
+    <div class="b3">SYSTEM ZARZĄDZANIA KLUCZAMI I PILOTAMI</div>
+  </div>
 </div>
 
+<!-- ══ TOPBAR ══ -->
 <div id="topbar">
   <div class="row">
     <button class="tab-btn active" id="tab-keys" onclick="switchTab('keys')">🔑 KLUCZE <span id="cnt-keys">(0)</span></button>
     <button class="tab-btn" id="tab-pilots" onclick="switchTab('pilots')">📡 PILOTY <span id="cnt-pilots">(0)</span></button>
     <div style="flex:1"></div>
-    <button class="view-btn active" id="view-map" onclick="switchView('map')">🗺 Mapa</button>
-    <button class="view-btn" id="view-list" onclick="switchView('list')">📋 Lista</button>
+    <button class="view-btn active" id="vbtn-map" onclick="switchView('map')">🗺 Mapa</button>
+    <button class="view-btn" id="vbtn-list" onclick="switchView('list')">📋 Lista</button>
   </div>
   <div class="row">
-    <input id="search" placeholder="🔍 Szukaj w bazie..." oninput="onSearch(this.value)"/>
-    <button class="action-btn btn-load" onclick="triggerLoadPdf()">📄 PDF</button>
-    <button class="action-btn btn-load" onclick="triggerLoadJson()" style="background:#e89004;border-color:#e89004">♻️ Wgraj Kopię</button>
-    
-    <div id="dropdown">
-      <button class="action-btn btn-save" id="save-btn" onclick="toggleDropdown(event)" disabled>💾 Eksport ▾</button>
-      <div id="dropdown-menu">
-        <button onclick="savePdf()">📄 Raport PDF</button>
-        <button onclick="saveXlsx()">📊 Baza XLSX</button>
-        <button onclick="exportJson()">💽 Pobierz Kopię Bazy (JSON)</button>
+    <input id="search-bar" placeholder="🔍 Szukaj w bazie..." oninput="onSearch(this.value)"/>
+    <button class="abtn abtn-blue" onclick="triggerPdf()">📄 PDF</button>
+    <button class="abtn abtn-gold" onclick="triggerJson()">♻️ Kopia</button>
+    <div id="ddwrap">
+      <button class="abtn abtn-green" id="save-btn" onclick="toggleDD(event)" disabled>💾 Eksport ▾</button>
+      <div id="ddmenu">
+        <button onclick="exportPdf()">📄 Raport PDF</button>
+        <button onclick="exportXlsx()">📊 Baza XLSX</button>
+        <button onclick="exportJson()">💽 Kopia JSON</button>
       </div>
     </div>
   </div>
-  <div id="status"></div>
+  <div id="statusbar">Ładowanie...</div>
+  <div id="progwrap"><div id="progbar"></div></div>
 </div>
 
+<!-- ══ CONTENT ══ -->
 <div id="content">
   <div id="map"></div>
+
   <div id="list-view">
+    <div id="list-empty" style="display:none">Brak danych lub brak wyników wyszukiwania.</div>
     <table id="data-table" style="display:none">
-      <thead><tr><th>Nr</th><th>Nazwa i Adres</th><th>Status</th><th>Akcje</th></tr></thead>
+      <thead>
+        <tr>
+          <th>NR</th>
+          <th>NAZWA / ADRES</th>
+          <th>GPS</th>
+          <th>AKCJE</th>
+        </tr>
+      </thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
-  <button id="add-pin-btn" onclick="toggleAddMode()">+ Dodaj ręcznie</button>
-  <button id="gps-btn" onclick="locateMe()" title="Pokaż moją pozycję">📍</button>
+
+  <button id="add-btn" onclick="toggleAddMode()">+ Dodaj ręcznie</button>
+  <button id="gps-btn" onclick="locateMe()" title="Moja pozycja GPS">📍</button>
 </div>
 
-<div id="modal-overlay">
-  <div class="modal-box">
-    <h3 id="modal-title">📍 Dodaj/Edytuj pozycję</h3>
-    <div class="field"><label>Numer obiektu</label><input id="m-nr" placeholder="np. 29"/></div>
-    <div class="field"><label>Nazwa (Opcjonalnie)</label><input id="m-name" placeholder="np. Sklep ABC"/></div>
-    <div class="field"><label>Adres</label><input id="m-addr" placeholder="np. ul. Paderewskiego 5"/></div>
-    <div style="font-size:11px;color:#555;margin-bottom:14px" id="m-gps"></div>
-    <div class="modal-btns">
-      <button style="background:#333;color:#fff" onclick="closeModal()">Anuluj</button>
-      <button style="background:#e53935;color:#fff" onclick="savePinData()">Zapisz pozycję</button>
+<!-- ══ MODAL DODAJ/EDYTUJ ══ -->
+<div id="modal-edit" class="overlay">
+  <div class="mbox">
+    <h3 id="modal-title">📍 Dodaj nową pozycję</h3>
+    <div class="field"><label>NUMER OBIEKTU *</label><input id="m-nr" placeholder="np. 29"/></div>
+    <div class="field"><label>NAZWA</label><input id="m-name" placeholder="np. Firma XYZ"/></div>
+    <div class="field"><label>ADRES (ulica + nr / działka)</label><input id="m-addr" placeholder="np. Paderewskiego 5 lub Dz. 123/4"/></div>
+    <div class="field"><label>MIASTO (puste = Grudziądz)</label><input id="m-city" placeholder="Grudziądz"/></div>
+    <div id="mgps-info"></div>
+    <div class="mbtns">
+      <button class="mbtn-cancel" onclick="closeModal()">Anuluj</button>
+      <button class="mbtn-save" onclick="savePin()">💾 Zapisz</button>
     </div>
   </div>
 </div>
 
-<div id="no-data-overlay">
-  <div class="modal-box" style="text-align:center">
-    <h3 style="font-size:20px;margin-bottom:10px">⚠️ Baza jest pusta</h3>
-    <p style="font-size:13px;color:#aaa;margin-bottom:20px">Pamięć przeglądarki została wyczyszczona lub uruchamiasz aplikację po raz pierwszy.</p>
-    <button onclick="triggerLoadJson()" style="background:#e89004;color:#fff;width:100%;padding:12px;font-size:14px;border-radius:6px;margin-bottom:10px">♻️ Wgraj Kopię Bazy (JSON)</button>
-    <button onclick="triggerLoadPdf()" style="background:#4fc3f7;color:#111;width:100%;padding:12px;font-size:14px;border-radius:6px">📄 Stwórz nową z PDF</button>
+<!-- ══ OVERLAY BRAK DANYCH ══ -->
+<div id="nodata-overlay" class="overlay">
+  <div class="mbox">
+    <h3 style="font-size:18px;margin-bottom:8px">⚠️ Baza jest pusta</h3>
+    <p>Pierwsze uruchomienie lub pamięć przeglądarki została wyczyszczona.<br>Wybierz co zrobić:</p>
+    <button class="big-btn" style="background:#1a1200;color:#ffd600;border:1px solid #ffd600" onclick="closeNoData();triggerJson()">♻️ Wgraj Kopię Bazy (JSON)</button>
+    <button class="big-btn" style="background:#0d2137;color:#4fc3f7;border:1px solid #4fc3f7" onclick="closeNoData();triggerPdf()">📄 Załaduj nową z PDF</button>
+    <button class="big-btn" style="background:transparent;color:#555;border:1px solid #222;font-size:12px" onclick="closeNoData()">Pomiń – zacznę od pustej bazy</button>
   </div>
 </div>
 
-<input type="file" id="file-pdf" accept=".pdf" style="display:none" onchange="handlePdfLoad(event)"/>
-<input type="file" id="file-json" accept=".json" style="display:none" onchange="handleJsonLoad(event)"/>
+<input type="file" id="file-pdf"  accept=".pdf"  style="display:none" onchange="handlePdf(event)"/>
+<input type="file" id="file-json" accept=".json" style="display:none" onchange="handleJson(event)"/>
 
+<!-- ══ SKRYPTY ══ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -170,276 +220,667 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
-// ── INICJALIZACJA PWA (Offline) ───────────────────────────────────────────────
-if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(err => console.log('PWA: ', err));
-}
+'use strict';
+// ──────────────────────────────────────────────────────────────────────────────
+// KONFIGURACJA
+// ──────────────────────────────────────────────────────────────────────────────
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ── STAN APLIKACJI ────────────────────────────────────────────────────────────
-const LS = { keys:'solidKeys_v3', pilots:'solidPilots_v3' };
+const LS = { keys:'solidKeys_v4', pilots:'solidPilots_v4' };
+
+// ──────────────────────────────────────────────────────────────────────────────
+// STAN
+// ──────────────────────────────────────────────────────────────────────────────
 let state = { keys:[], pilots:[] };
 let tab = 'keys';
 let currentView = 'map';
-let addMode = false, editingId = null, pendingLatLng = null;
-let searchQuery = '';
-let map, markersGroup, markerById = {};
-let userGpsMarker = null;
+let addMode = false;
+let editingId = null;
+let pendingLL = null;       // {lat,lng} oczekujące na modal
+let searchQ = '';
+let map, clusterGroup, markerById = {}, userMarker = null;
 
-function esc(str) { return String(str||'').replace(/[&<>"']/g, m => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m])); }
-function getTime() { return new Date().toLocaleString('pl-PL', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'}); }
+// ──────────────────────────────────────────────────────────────────────────────
+// UTILS
+// ──────────────────────────────────────────────────────────────────────────────
+function esc(s){
+  return String(s||'').replace(/[&<>"']/g,
+    m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function ts(){
+  return new Date().toLocaleString('pl-PL',
+    {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function setStatus(msg,spin=false){
+  document.getElementById('statusbar').innerHTML =
+    spin ? '<span style="color:#c62828">⏳</span> '+msg : msg;
+}
+function showProg(pct){
+  const w=document.getElementById('progwrap');
+  const b=document.getElementById('progbar');
+  w.style.display='block'; b.style.width=Math.min(pct,100)+'%';
+}
+function hideProg(){
+  document.getElementById('progwrap').style.display='none';
+  document.getElementById('progbar').style.width='0%';
+}
+function uid(){ return Date.now()+Math.random(); }
 
-window.addEventListener('DOMContentLoaded', () => {
-  try {
-    const k = localStorage.getItem(LS.keys);   if(k) state.keys   = JSON.parse(k);
-    const p = localStorage.getItem(LS.pilots); if(p) state.pilots = JSON.parse(p);
-  } catch(e){}
-  
-  if(state.keys.length === 0 && state.pilots.length === 0) {
-    document.getElementById('no-data-overlay').classList.add('open');
-  } else {
-    setStatus('✓ Baza wczytana z pamięci telefonu.');
+// ──────────────────────────────────────────────────────────────────────────────
+// PARSOWANIE ADRESU → MIASTO / ULICA / NR
+// ──────────────────────────────────────────────────────────────────────────────
+const CITIES = ['turznice','wałdowo','gubiny','miłoleśna','brzeźna','węgrowo','grudziądz'];
+
+function parseAddress(raw){
+  // Zamień skróty Gr. / Gr  na Grudziądz
+  let s = (raw||'').replace(/\bGr\.?\s*/gi,'Grudziądz ').trim();
+
+  let city = 'Grudziądz';
+  let street = s;
+
+  // Szukaj nazwy miasta na początku lub końcu
+  for(const c of CITIES){
+    const re = new RegExp('\\b'+c+'\\b','i');
+    if(re.test(s)){
+      city = c.charAt(0).toUpperCase()+c.slice(1);
+      street = s.replace(re,'').replace(/^[,\s]+|[,\s]+$/g,'');
+      break;
+    }
   }
 
+  // Wydziel numer domu/działki
+  // Działki: "dz.", "działka", "nr dz"
+  let houseNr = '';
+  let streetName = street;
+
+  const dzMatch = street.match(/(?:dz\.?|działka|nr\.?\s*dz\.?)\s*([\w\/\-]+)/i);
+  if(dzMatch){
+    houseNr = 'dz. '+dzMatch[1];
+    streetName = street.replace(dzMatch[0],'').trim();
+  } else {
+    // Standardowy numer domu: cyfry na końcu, opcjonalnie z literą lub /
+    const numMatch = street.match(/(\d+[\w\/\-]*)$/);
+    if(numMatch){
+      houseNr = numMatch[1];
+      streetName = street.slice(0,street.lastIndexOf(numMatch[1])).trim();
+    }
+  }
+  streetName = streetName.replace(/[,\s]+$/,'').trim();
+
+  return { city, street: streetName||street, houseNr };
+}
+
+// Buduje pełny adres do geokodowania
+function buildGeoQuery(item){
+  const p = parseAddress(item.address);
+  // Jeśli działka – poszukaj obszarowo
+  if(/dz\.|działka/i.test(item.address)){
+    return p.street + ' ' + p.houseNr + ', ' + p.city + ', Polska';
+  }
+  return (item.address||'').replace(/\bGr\.?\s*/gi,'Grudziądz ')+', Polska';
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// GEOKODOWANIE – SEKWENCYJNE (1 req/s – zgodność z Nominatim)
+// ──────────────────────────────────────────────────────────────────────────────
+async function geocodeOne(item){
+  const q = buildGeoQuery(item);
+  try{
+    const res = await fetch(
+      'https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+
+      '&format=json&limit=1&countrycodes=pl',
+      {headers:{'Accept-Language':'pl','User-Agent':'SolidPatrol110/1.0'}}
+    );
+    const data = await res.json();
+    if(data && data[0]) return {lat:parseFloat(data[0].lat),lng:parseFloat(data[0].lon)};
+  }catch(e){}
+  return null;
+}
+
+async function geocodeAll(items, onProg){
+  const results = [];
+  for(let i=0;i<items.length;i++){
+    onProg(i+1, items.length, items[i].address);
+    showProg((i+1)/items.length*100);
+    const c = await geocodeOne(items[i]);
+    results.push(c);
+    if(i < items.length-1) await new Promise(r=>setTimeout(r,1100)); // 1.1s – Nominatim limit
+  }
+  return results;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  try{
+    const k=localStorage.getItem(LS.keys);   if(k) state.keys=JSON.parse(k);
+    const p=localStorage.getItem(LS.pilots); if(p) state.pilots=JSON.parse(p);
+  }catch(e){}
+
   initMap();
+
+  if(state.keys.length===0 && state.pilots.length===0){
+    document.getElementById('nodata-overlay').classList.add('open');
+    setStatus('Baza pusta. Wczytaj dane.');
+  } else {
+    setStatus('✓ Baza wczytana — Klucze: '+state.keys.length+', Piloty: '+state.pilots.length);
+  }
   switchTab('keys');
 });
 
-// ── MAPA I KLASTROWANIE ───────────────────────────────────────────────────────
-function initMap() {
-  map = L.map('map').setView([53.4837, 18.7536], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
-  
-  // Wyszukiwarka mapy
-  const MapSearch = L.Control.extend({
-    options: { position: 'topleft' },
-    onAdd: function() {
-      const div = L.DomUtil.create('div', 'map-search-container');
+// ──────────────────────────────────────────────────────────────────────────────
+// MAPA
+// ──────────────────────────────────────────────────────────────────────────────
+function initMap(){
+  map = L.map('map',{zoomControl:true}).setView([53.4837,18.7536],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap contributors',maxZoom:19
+  }).addTo(map);
+
+  // Wyszukiwarka na mapie (lewy górny róg)
+  const SearchCtrl = L.Control.extend({
+    options:{position:'topleft'},
+    onAdd:function(){
+      const div = L.DomUtil.create('div','mapsearch-wrap');
       L.DomEvent.disableClickPropagation(div);
-      div.innerHTML = `<input type="text" id="map-search-input" placeholder="Wyszukaj na mapie..." oninput="onMapInternalSearch(this.value)"><div id="map-search-results"></div>`;
+      L.DomEvent.disableScrollPropagation(div);
+      div.innerHTML =
+        '<input type="text" id="ms-input" placeholder="🔍 Szukaj na mapie...">'+
+        '<div id="ms-results"></div>';
+      div.querySelector('#ms-input').addEventListener('input',function(){
+        mapSearch(this.value);
+      });
       return div;
     }
   });
-  map.addControl(new MapSearch());
+  map.addControl(new SearchCtrl());
 
-  map.on('click', e => {
+  // Klik w mapę – tryb dodawania
+  map.on('click',e=>{
     if(!addMode) return;
+    pendingLL = e.latlng;
     openModal(null, e.latlng);
     toggleAddMode(false);
   });
+
+  // GPS zdarzenia
+  map.on('locationfound',e=>{
+    setStatus('✓ Pozycja GPS: '+e.latlng.lat.toFixed(5)+', '+e.latlng.lng.toFixed(5));
+    if(userMarker) userMarker.setLatLng(e.latlng);
+    else userMarker = L.circleMarker(e.latlng,{
+      radius:9,fillColor:'#2196F3',color:'#fff',weight:2,fillOpacity:.95
+    }).addTo(map).bindPopup('<b style="font-family:sans-serif">📍 Twoja pozycja</b>');
+  });
+  map.on('locationerror',e=>setStatus('❌ GPS niedostępny: '+e.message));
 }
 
-function syncMarkers() {
-  if(markersGroup) map.removeLayer(markersGroup);
-  markersGroup = L.markerClusterGroup({ disableClusteringAtZoom: 16, maxClusterRadius: 40 });
-  markerById = {};
+// ──────────────────────────────────────────────────────────────────────────────
+// WYSZUKIWARKA NA MAPIE
+// ──────────────────────────────────────────────────────────────────────────────
+function mapSearch(q){
+  const div = document.getElementById('ms-results');
+  if(!q.trim()){div.style.display='none';return;}
+  const sq = q.toLowerCase();
+  const hits = state[tab].filter(it=>
+    it.lat &&
+    ((it.nr||'').toLowerCase().includes(sq) ||
+     (it.name||'').toLowerCase().includes(sq) ||
+     (it.address||'').toLowerCase().includes(sq))
+  ).slice(0,7);
 
-  const sq = searchQuery.toLowerCase();
-  const visible = sq ? state[tab].filter(it => (it.nr||'').toLowerCase().includes(sq) || (it.name||'').toLowerCase().includes(sq) || (it.address||'').toLowerCase().includes(sq)) : state[tab];
-
-  for(const item of visible) {
-    if(!item.lat||!item.lng) continue;
-    
-    const iconHtml = `<div style="background:#e53935;color:#fff;border-radius:50% 50% 50% 0;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.6);transform:rotate(-45deg)"><span style="transform:rotate(45deg)">${esc(item.nr)}</span></div>`;
-    
-    const m = L.marker([item.lat,item.lng], {
-      icon: L.divIcon({html: iconHtml, iconSize:[34,34], iconAnchor:[17,34], popupAnchor:[0,-36]}),
-      draggable: true
-    });
-    
-    m.bindPopup(buildPopup(item));
-    m.on('dragend', ev => {
-      const {lat,lng} = ev.target.getLatLng();
-      item.lat = lat; item.lng = lng; item.updatedAt = getTime();
-      saveToMemory(); m.getPopup().setContent(buildPopup(item)); if(currentView==='list') renderList();
-    });
-    
-    markerById[item.id] = m;
-    markersGroup.addLayer(m);
+  if(!hits.length){
+    div.innerHTML='<div class="msri"><span class="msri-addr">Brak wyników</span></div>';
+  } else {
+    div.innerHTML = hits.map(it=>`
+      <div class="msri" onclick="focusMarker(${it.id})">
+        <span class="msri-label">KLUCZ #${esc(it.nr)}</span>
+        <span class="msri-name">${esc(it.name)}</span>
+        <span class="msri-addr">${esc(it.address)}</span>
+      </div>`).join('');
   }
-  map.addLayer(markersGroup);
+  div.style.display='block';
 }
 
-function buildPopup(item) {
-  const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.lat},${item.lng}`;
+function focusMarker(id){
+  document.getElementById('ms-results').style.display='none';
+  document.getElementById('ms-input').value='';
+  const m = markerById[id];
+  if(!m) return;
+  clusterGroup.zoomToShowLayer(m,()=>m.openPopup());
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// SYNCHRONIZACJA PINEZEK
+// ──────────────────────────────────────────────────────────────────────────────
+function syncMarkers(){
+  if(clusterGroup) map.removeLayer(clusterGroup);
+  clusterGroup = L.markerClusterGroup({
+    disableClusteringAtZoom:16,
+    maxClusterRadius:50,
+    iconCreateFunction:function(cluster){
+      const n=cluster.getChildCount();
+      return L.divIcon({
+        html:`<div style="background:#c62828;color:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)">${n}</div>`,
+        iconSize:[38,38],className:''
+      });
+    }
+  });
+  markerById={};
+
+  const sq=searchQ.toLowerCase();
+  const visible = sq ? state[tab].filter(it=>
+    (it.nr||'').toLowerCase().includes(sq)||
+    (it.name||'').toLowerCase().includes(sq)||
+    (it.address||'').toLowerCase().includes(sq)
+  ) : state[tab];
+
+  for(const item of visible){
+    if(!item.lat||!item.lng) continue;
+    const iconHtml=`
+      <div style="background:#c62828;color:#fff;border-radius:50% 50% 50% 0;
+        width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+        font-size:11px;font-weight:900;border:2px solid #fff;
+        box-shadow:0 3px 10px rgba(0,0,0,.6);transform:rotate(-45deg);
+        font-family:'Courier New',monospace">
+        <span style="transform:rotate(45deg)">${esc(item.nr)}</span>
+      </div>`;
+    const marker = L.marker([item.lat,item.lng],{
+      icon:L.divIcon({html:iconHtml,iconSize:[36,36],iconAnchor:[18,36],popupAnchor:[0,-38],className:''}),
+      draggable:true
+    });
+    marker.bindPopup(buildPopup(item),{maxWidth:300});
+    marker.on('dragend',ev=>{
+      const ll=ev.target.getLatLng();
+      const idx=state[tab].findIndex(i=>i.id===item.id);
+      if(idx>-1){
+        state[tab][idx].lat=ll.lat;
+        state[tab][idx].lng=ll.lng;
+        state[tab][idx].updatedAt=ts();
+        marker.getPopup().setContent(buildPopup(state[tab][idx]));
+        saveToMem();
+        if(currentView==='list') renderList();
+      }
+    });
+    markerById[item.id]=marker;
+    clusterGroup.addLayer(marker);
+  }
+  map.addLayer(clusterGroup);
+}
+
+function buildPopup(item){
+  const p = parseAddress(item.address);
+  const nav=`https://www.google.com/maps/dir/?api=1&destination=${item.lat},${item.lng}`;
   return `
-    <div class="pop-header"><span class="pop-nr">#${esc(item.nr)}</span> <span class="pop-name">${esc(item.name)}</span></div>
+    <div class="pop-head">
+      <span class="pop-badge">#${esc(item.nr)}</span>
+      <span class="pop-title">${esc(item.name)}</span>
+    </div>
     <div class="pop-body">
-      <div>📍 ${esc(item.address)}</div>
-      ${item.updatedAt ? `<div style="font-size:10px;color:#888;margin-top:4px">Zaktualizowano: ${item.updatedAt}</div>` : ''}
-      <a href="${navUrl}" target="_blank" class="nav-btn">🧭 Wyznacz Trasę</a>
-      <div class="action-row">
-        <button class="btn-sm" onclick="openModal(${item.id})">✏️ Edytuj</button>
-        <button class="btn-sm" style="background:#d32f2f" onclick="deletePin(${item.id})">🗑️ Usuń</button>
+      <div class="pop-addr">
+        ${p.street ? '🏠 '+esc(p.street)+' '+esc(p.houseNr) : '📍 '+esc(item.address)}<br>
+        <span style="color:#aaa;font-size:12px">📌 ${esc(p.city)}</span>
+      </div>
+      <div class="pop-gps">${item.lat?item.lat.toFixed(6)+', '+item.lng.toFixed(6):''}</div>
+      ${item.updatedAt?`<div class="pop-ts">✏️ Edytowano: ${esc(item.updatedAt)}</div>`:''}
+      <a href="${nav}" target="_blank" class="pop-nav">🧭 Wyznacz Trasę Google Maps</a>
+      <div class="pop-actions">
+        <button class="pop-edit" onclick="popEdit(${item.id})">✏️ Edytuj</button>
+        <button class="pop-del" onclick="popDel(${item.id})">🗑️ Usuń</button>
       </div>
     </div>`;
 }
 
-function fitMap() {
-  if(!markersGroup || markersGroup.getLayers().length===0) return;
-  map.fitBounds(markersGroup.getBounds(), {padding:[40,40], maxZoom:17});
+function popEdit(id){ map.closePopup(); openModal(id); }
+function popDel(id){
+  if(!confirm('Usunąć ten obiekt z bazy?')) return;
+  state[tab]=state[tab].filter(i=>i.id!==id);
+  saveToMem(); syncMarkers(); renderList();
 }
 
-// ── WYSZUKIWANIE ──────────────────────────────────────────────────────────────
-function onMapInternalSearch(q) {
-  const resDiv = document.getElementById('map-search-results');
-  if(!q.trim()) { resDiv.style.display='none'; return; }
-  const sq = q.toLowerCase();
-  const hits = state[tab].filter(it => it.lat && ((it.nr||'').toLowerCase().includes(sq) || (it.address||'').toLowerCase().includes(sq))).slice(0, 6);
-  
-  if(!hits.length) resDiv.innerHTML = '<div class="res-item">Brak wyników</div>';
-  else resDiv.innerHTML = hits.map(it => `<div class="res-item" onclick="focusPin(${it.id})"><b>#${esc(it.nr)}</b> ${esc(it.address)}</div>`).join('');
-  resDiv.style.display = 'block';
+function fitMap(){
+  if(clusterGroup && clusterGroup.getLayers().length>0)
+    map.fitBounds(clusterGroup.getBounds(),{padding:[50,50],maxZoom:16});
 }
 
-function focusPin(id) {
-  const m = markerById[id];
-  if(m) {
-    markersGroup.zoomToShowLayer(m, () => { m.openPopup(); });
-  }
-  document.getElementById('map-search-results').style.display='none';
+function locateMe(){ setStatus('⏳ Szukam pozycji GPS...',true); map.locate({setView:true,maxZoom:16}); }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// ZAKŁADKI I WIDOKI
+// ──────────────────────────────────────────────────────────────────────────────
+function switchTab(t){
+  tab=t;
+  document.getElementById('tab-keys').classList.toggle('active',t==='keys');
+  document.getElementById('tab-pilots').classList.toggle('active',t==='pilots');
+  syncMarkers(); renderList(); updateUI();
+  if(currentView==='map') setTimeout(fitMap,200);
 }
 
-// ── GPS - LOKALIZACJA PATROLU ─────────────────────────────────────────────────
-function locateMe() {
-  setStatus('⏳ Pobieranie pozycji GPS...', true);
-  map.locate({setView: true, maxZoom: 16});
-}
-map.on('locationfound', e => {
-  setStatus('✓ Pozycja znaleziona');
-  if(userGpsMarker) { userGpsMarker.setLatLng(e.latlng); }
-  else { userGpsMarker = L.circleMarker(e.latlng, {radius:8, fillColor:'#2196F3', color:'#fff', weight:2, opacity:1, fillOpacity:0.9}).addTo(map); }
-});
-map.on('locationerror', e => setStatus('❌ Błąd GPS: '+e.message));
-
-// ── WIDOK LISTY I EDYCJA ──────────────────────────────────────────────────────
-function switchTab(t) { tab = t; syncMarkers(); fitMap(); renderList(); updateUI(); }
-function switchView(v) {
-  currentView = v;
-  document.getElementById('view-map').classList.toggle('active', v==='map');
-  document.getElementById('view-list').classList.toggle('active', v==='list');
-  document.getElementById('map').style.display = v==='map' ? 'block' : 'none';
-  document.getElementById('list-view').style.display = v==='list' ? 'block' : 'none';
-  document.getElementById('add-pin-btn').style.display = v==='map' ? 'block' : 'none';
-  if(v==='map') { setTimeout(() => { map.invalidateSize(); fitMap(); }, 100); }
+function switchView(v){
+  currentView=v;
+  document.getElementById('vbtn-map').classList.toggle('active',v==='map');
+  document.getElementById('vbtn-list').classList.toggle('active',v==='list');
+  document.getElementById('map').style.display      = v==='map'  ? 'block':'none';
+  document.getElementById('list-view').style.display= v==='list' ? 'block':'none';
+  document.getElementById('add-btn').style.display  = v==='map'  ? 'block':'none';
+  document.getElementById('gps-btn').style.display  = v==='map'  ? 'flex' :'none';
+  if(v==='map'){ setTimeout(()=>{map.invalidateSize();fitMap();},150); }
   if(v==='list') renderList();
 }
 
-function onSearch(q) { searchQuery = q; syncMarkers(); if(currentView==='list') renderList(); }
+function onSearch(q){
+  searchQ=q;
+  syncMarkers();
+  if(currentView==='list') renderList();
+}
 
-function renderList() {
-  const sq = searchQuery.toLowerCase();
-  const visible = sq ? state[tab].filter(it => (it.nr||'').toLowerCase().includes(sq) || (it.name||'').toLowerCase().includes(sq) || (it.address||'').toLowerCase().includes(sq)) : state[tab];
-  
-  const tbody = document.getElementById('tbody');
-  document.getElementById('data-table').style.display = visible.length ? 'table' : 'none';
-  
-  tbody.innerHTML = visible.map(item => `
-    <tr class="${item.lat?'row-ok':'row-err'}">
-      <td class="td-nr">#${esc(item.nr)}</td>
-      <td><b>${esc(item.name)}</b><br><span class="td-addr">${esc(item.address)}</span></td>
-      <td style="font-size:11px;font-weight:bold">${item.lat?'OK':'BRAK'}</td>
+// ──────────────────────────────────────────────────────────────────────────────
+// LISTA
+// ──────────────────────────────────────────────────────────────────────────────
+function renderList(){
+  const sq=searchQ.toLowerCase();
+  const rows = sq ? state[tab].filter(it=>
+    (it.nr||'').toLowerCase().includes(sq)||
+    (it.name||'').toLowerCase().includes(sq)||
+    (it.address||'').toLowerCase().includes(sq)
+  ) : state[tab];
+
+  const tbl=document.getElementById('data-table');
+  const emp=document.getElementById('list-empty');
+  if(!rows.length){ tbl.style.display='none'; emp.style.display='block'; return; }
+  tbl.style.display='table'; emp.style.display='none';
+
+  document.getElementById('tbody').innerHTML = rows.map(item=>{
+    const hasGps = !!(item.lat && item.lng);
+    return `<tr>
+      <td class="${hasGps?'td-nr-ok':'td-nr-err'}">#${esc(item.nr)}</td>
+      <td><div class="td-name">${esc(item.name)}</div><div class="td-addr">${esc(item.address)}</div></td>
+      <td class="${hasGps?'td-gps-ok':'td-gps-err'}">${hasGps?'✓ GPS':'✗ BRAK'}</td>
       <td>
         <button class="btn-sm" onclick="openModal(${item.id})">✏️</button>
-        <button class="btn-sm" style="background:#d32f2f" onclick="deletePin(${item.id})">🗑️</button>
+        <button class="btn-sm btn-sm-red" onclick="delItem(${item.id})">🗑️</button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
-// ── MODAL: DODAWANIE / EDYCJA / USUWANIE ──────────────────────────────────────
-function toggleAddMode(force) {
-  addMode = force !== undefined ? force : !addMode;
-  document.getElementById('add-pin-btn').textContent = addMode ? '✕ Anuluj' : '+ Dodaj ręcznie';
-  document.getElementById('add-pin-btn').classList.toggle('active', addMode);
+function delItem(id){
+  if(!confirm('Usunąć?')) return;
+  state[tab]=state[tab].filter(i=>i.id!==id);
+  saveToMem(); syncMarkers(); renderList();
 }
 
-function openModal(id = null, latlng = null) {
-  editingId = id;
-  document.getElementById('modal-title').textContent = id ? '✏️ Edytuj pozycję' : '📍 Dodaj nową';
-  
-  if(id) {
-    const item = state[tab].find(i => i.id === id);
-    pendingLatLng = {lat: item.lat, lng: item.lng};
-    document.getElementById('m-nr').value = item.nr||'';
+// ──────────────────────────────────────────────────────────────────────────────
+// MODAL DODAJ / EDYTUJ
+// ──────────────────────────────────────────────────────────────────────────────
+function toggleAddMode(force){
+  addMode = force!==undefined ? force : !addMode;
+  const btn=document.getElementById('add-btn');
+  btn.textContent = addMode ? '✕ Anuluj' : '+ Dodaj ręcznie';
+  btn.classList.toggle('active',addMode);
+}
+
+function openModal(id=null, latlng=null){
+  editingId=id;
+  document.getElementById('modal-title').textContent = id ? '✏️ Edytuj pozycję' : '📍 Dodaj nową pozycję';
+  if(id){
+    const item=state[tab].find(i=>i.id===id);
+    if(!item) return;
+    pendingLL={lat:item.lat,lng:item.lng};
+    const p=parseAddress(item.address);
+    document.getElementById('m-nr').value   = item.nr||'';
     document.getElementById('m-name').value = item.name||'';
-    document.getElementById('m-addr').value = item.address||'';
+    document.getElementById('m-addr').value = (p.street+(p.houseNr?' '+p.houseNr:''))||item.address||'';
+    document.getElementById('m-city').value = p.city||'Grudziądz';
   } else {
-    pendingLatLng = latlng;
-    document.getElementById('m-nr').value = '';
-    document.getElementById('m-name').value = '';
-    document.getElementById('m-addr').value = '';
+    pendingLL=latlng;
+    ['m-nr','m-name','m-addr'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('m-city').value='Grudziądz';
   }
-  document.getElementById('m-gps').textContent = pendingLatLng && pendingLatLng.lat ? `Kordynaty: ${pendingLatLng.lat.toFixed(5)}, ${pendingLatLng.lng.toFixed(5)}` : 'Brak GPS - uzupełnij na mapie';
-  document.getElementById('modal-overlay').classList.add('open');
+  const ginfo=document.getElementById('mgps-info');
+  ginfo.textContent = pendingLL&&pendingLL.lat
+    ? 'GPS: '+pendingLL.lat.toFixed(5)+', '+pendingLL.lng.toFixed(5)
+    : '⚠ Brak GPS – obiekt trafi tylko na listę';
+  document.getElementById('modal-edit').classList.add('open');
+  setTimeout(()=>document.getElementById('m-nr').focus(),100);
 }
 
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModal(){ document.getElementById('modal-edit').classList.remove('open'); }
+function closeNoData(){ document.getElementById('nodata-overlay').classList.remove('open'); }
 
-function savePinData() {
-  const nr = document.getElementById('m-nr').value.trim();
-  if(!nr) return alert('Numer jest wymagany!');
-  
-  const payload = {
-    nr, name: document.getElementById('m-name').value.trim(),
-    address: document.getElementById('m-addr').value.trim(),
-    updatedAt: getTime()
-  };
+async function savePin(){
+  const nr   = document.getElementById('m-nr').value.trim();
+  if(!nr){ alert('Numer obiektu jest wymagany!'); return; }
+  const name = document.getElementById('m-name').value.trim();
+  const addr = document.getElementById('m-addr').value.trim();
+  const city = document.getElementById('m-city').value.trim()||'Grudziądz';
+  const fullAddr = addr + (city&&city.toLowerCase()!==addr.toLowerCase() ? ', '+city : '');
 
-  if(editingId) {
-    const idx = state[tab].findIndex(i => i.id === editingId);
-    state[tab][idx] = {...state[tab][idx], ...payload};
+  const now = ts();
+  if(editingId){
+    const idx=state[tab].findIndex(i=>i.id===editingId);
+    if(idx>-1) state[tab][idx]={...state[tab][idx],nr,name,address:fullAddr,updatedAt:now};
   } else {
-    state[tab].push({id: Date.now(), lat: pendingLatLng?.lat||null, lng: pendingLatLng?.lng||null, ...payload});
+    state[tab].push({id:uid(),nr,name,address:fullAddr,
+      lat:pendingLL?.lat||null, lng:pendingLL?.lng||null,
+      createdAt:now, updatedAt:now});
   }
-  
-  closeModal(); saveToMemory(); switchTab(tab);
+  closeModal(); saveToMem(); syncMarkers(); renderList(); updateUI();
 }
 
-function deletePin(id) {
-  if(!confirm('Na pewno usunąć ten obiekt z bazy?')) return;
-  state[tab] = state[tab].filter(i => i.id !== id);
-  saveToMemory(); switchTab(tab);
+// ──────────────────────────────────────────────────────────────────────────────
+// WCZYTAJ PDF
+// ──────────────────────────────────────────────────────────────────────────────
+function triggerPdf(){ document.getElementById('file-pdf').click(); }
+
+async function handlePdf(e){
+  const file=e.target.files[0]; if(!file) return;
+  e.target.value='';
+  setStatus('⏳ Wczytuję PDF...',true); showProg(0);
+  try{
+    const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+    let fullText='';
+    for(let i=1;i<=pdf.numPages;i++){
+      const page=await pdf.getPage(i);
+      const content=await page.getTextContent();
+      let line='',lastY=null;
+      for(const it of content.items){
+        const y=it.transform[5];
+        if(lastY!==null && Math.abs(y-lastY)>5){ fullText+=line+'\n'; line=''; }
+        line+=it.str+'  '; lastY=y;
+      }
+      if(line) fullText+=line+'\n';
+    }
+
+    const parsed=parsePdfLines(fullText);
+    if(!parsed.length){ setStatus('❌ Nie znaleziono wierszy danych w PDF.'); hideProg(); return; }
+
+    setStatus(`⏳ Znaleziono ${parsed.length} poz. Geokuduję sekwencyjnie (1 req/s)...`,true);
+    const coords = await geocodeAll(parsed,(done,total,addr)=>{
+      setStatus(`⏳ Geokuduję ${done}/${total}: ${addr}`,true);
+    });
+
+    state[tab]=parsed.map((item,i)=>({
+      ...item, lat:coords[i]?.lat??null, lng:coords[i]?.lng??null
+    }));
+    saveToMem(); closeNoData(); syncMarkers(); renderList(); updateUI();
+    hideProg();
+    const ok=state[tab].filter(x=>x.lat).length;
+    setStatus(`✓ Załadowano ${state[tab].length} poz. — ${ok} z GPS, ${state[tab].length-ok} bez GPS`);
+    setTimeout(fitMap,400);
+  }catch(err){
+    setStatus('❌ Błąd PDF: '+err.message); hideProg();
+  }
 }
 
-// ── BACKUP JSON I IMPORT ──────────────────────────────────────────────────────
-function exportJson() {
-  const blob = new Blob([JSON.stringify(state)], {type: 'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `solid_patrol_backup_${Date.now()}.json`;
-  a.click();
+function parsePdfLines(text){
+  const items=[];
+  for(const line of text.split('\n')){
+    const raw=line.trim().replace(/\bGr\.?\s*/gi,'Grudziądz ');
+    const parts=raw.split(/\s{2,}|\t/).map(s=>s.trim()).filter(Boolean);
+    if(parts.length>=2 && /^\d+/.test(parts[0])){
+      items.push({
+        id:uid(), nr:parts[0],
+        address:parts[1]||'',
+        name:parts[2]||'',
+        lat:null, lng:null,
+        createdAt:ts()
+      });
+    }
+  }
+  return items;
 }
 
-function triggerLoadJson() { document.getElementById('file-json').click(); }
-function handleJsonLoad(e) {
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      if(data.keys && data.pilots) {
-        state = data; saveToMemory(); switchTab('keys');
-        document.getElementById('no-data-overlay').classList.remove('open');
-        setStatus('✓ Przywrócono bazę z pliku!');
-      } else alert('Nieprawidłowy plik kopii zapasowej.');
-    } catch(err) { alert('Błąd odczytu pliku!'); }
+// ──────────────────────────────────────────────────────────────────────────────
+// BACKUP JSON
+// ──────────────────────────────────────────────────────────────────────────────
+function triggerJson(){ document.getElementById('file-json').click(); }
+
+function exportJson(){
+  document.getElementById('ddmenu').classList.remove('open');
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=Object.assign(document.createElement('a'),
+    {href:URL.createObjectURL(blob),download:'solid_patrol_backup_'+Date.now()+'.json'});
+  a.click(); URL.revokeObjectURL(a.href);
+  setStatus('✓ Pobrano kopię JSON ('+state.keys.length+' kluczy, '+state.pilots.length+' pilotów)');
+}
+
+function handleJson(e){
+  const file=e.target.files[0]; if(!file) return;
+  e.target.value='';
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(Array.isArray(data.keys) && Array.isArray(data.pilots)){
+        state=data; saveToMem(); closeNoData(); switchTab('keys');
+        setStatus('✓ Przywrócono bazę — Klucze: '+state.keys.length+', Piloty: '+state.pilots.length);
+        setTimeout(fitMap,400);
+      } else { alert('Nieprawidłowy plik kopii zapasowej!'); }
+    }catch(err){ alert('Błąd odczytu JSON: '+err.message); }
   };
   reader.readAsText(file);
 }
 
-// ── HELPERY ───────────────────────────────────────────────────────────────────
-function saveToMemory() { localStorage.setItem(LS.keys, JSON.stringify(state.keys)); localStorage.setItem(LS.pilots, JSON.stringify(state.pilots)); updateUI(); }
-function updateUI() {
-  document.getElementById('cnt-keys').textContent = `(${state.keys.length})`;
-  document.getElementById('cnt-pilots').textContent = `(${state.pilots.length})`;
-  document.getElementById('save-btn').disabled = state[tab].length === 0;
-}
-function setStatus(msg, loading=false) { document.getElementById('status').innerHTML = loading ? '<span class="spin">⏳</span> '+msg : msg; }
-function toggleDropdown(e) { e.stopPropagation(); document.getElementById('dropdown-menu').classList.toggle('open'); }
-document.addEventListener('click', ()=> document.getElementById('dropdown-menu').classList.remove('open'));
+// ──────────────────────────────────────────────────────────────────────────────
+// EKSPORT PDF
+// ──────────────────────────────────────────────────────────────────────────────
+async function exportPdf(){
+  document.getElementById('ddmenu').classList.remove('open');
+  const data=state[tab];
+  if(!data.length){ setStatus('Brak danych do eksportu.'); return; }
+  setStatus('⏳ Generuję PDF...',true);
+  try{
+    const {PDFDocument,rgb,StandardFonts}=PDFLib;
+    const doc=await PDFDocument.create();
+    const font=await doc.embedFont(StandardFonts.Helvetica);
+    const bold=await doc.embedFont(StandardFonts.HelveticaBold);
+    const [W,H]=[595,842]; const M=35;
+    let page=doc.addPage([W,H]); let y=H-45;
 
-// ── POZOSTAŁY KOD PDF/XLSX (bez zmian w logice) ───────────────────────────────
-function triggerLoadPdf() { document.getElementById('file-pdf').click(); }
-// (Tutaj znajduje się cała reszta Twojego dotychczasowego kodu handlePdfLoad, parsePdfLines, geocodeBatch, parseAddressStr, savePdf, saveXlsx - zachowana w oryginale w celu oszczędności miejsca w odpowiedzi)
+    // Nagłówek
+    const RED=rgb(0.78,0.16,0.16);
+    const GRAY=rgb(0.5,0.5,0.5);
+    const BLACK=rgb(0.08,0.08,0.08);
+
+    page.drawText('SOLID PATROL 110 GRUDZIĄDZ'  ,{x:M,y,font:bold,size:15,color:RED}); y-=20;
+    page.drawText((tab==='keys'?'REJESTR KLUCZY':'REJESTR PILOTÓW')+' — '+new Date().toLocaleDateString('pl-PL'),
+      {x:M,y,font:bold,size:11,color:BLACK}); y-=8;
+    page.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:1.5,color:RED}); y-=14;
+
+    // Nagłówki kolumn
+    const cols=[0,36,130,260,380,470];
+    const hdrs=['NR','NAZWA','ULICA','NR DOMU/DZ.','MIASTO','GPS LAT,LNG'];
+    hdrs.forEach((h,i)=>page.drawText(h,{x:M+cols[i],y,font:bold,size:8,color:GRAY}));
+    y-=4;
+    page.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.5,color:rgb(.85,.85,.85)}); y-=12;
+
+    for(const item of data){
+      if(y<50){ page=doc.addPage([W,H]); y=H-45; }
+      const p=parseAddress(item.address);
+      const gps=item.lat?item.lat.toFixed(4)+' '+item.lng.toFixed(4):'';
+      const row=[
+        (item.nr||'').slice(0,6),
+        (item.name||'').slice(0,20),
+        (p.street||'').slice(0,22),
+        (p.houseNr||'').slice(0,12),
+        (p.city||'').slice(0,14),
+        gps.slice(0,20)
+      ];
+      row.forEach((txt,i)=>{
+        if(txt) page.drawText(txt,{x:M+cols[i],y,font,size:8,color:BLACK});
+      });
+      // Kolor paska wg statusu GPS
+      if(!item.lat){
+        page.drawRectangle({x:M,y:y-2,width:3,height:11,color:RED,opacity:.7});
+      }
+      y-=13;
+    }
+
+    const bytes=await doc.save();
+    const a=Object.assign(document.createElement('a'),{
+      href:URL.createObjectURL(new Blob([bytes],{type:'application/pdf'})),
+      download:(tab==='keys'?'klucze':'piloty')+'_'+Date.now()+'.pdf'
+    });
+    a.click(); URL.revokeObjectURL(a.href);
+    setStatus('✓ Pobrano PDF ('+data.length+' pozycji)');
+  }catch(err){ setStatus('❌ Błąd PDF: '+err.message); }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// EKSPORT XLSX
+// ──────────────────────────────────────────────────────────────────────────────
+function exportXlsx(){
+  document.getElementById('ddmenu').classList.remove('open');
+  const data=state[tab];
+  if(!data.length){ setStatus('Brak danych.'); return; }
+  try{
+    const rows=data.map(item=>{
+      const p=parseAddress(item.address);
+      return {
+        NR:         item.nr||'',
+        NAZWA:      item.name||'',
+        ULICA:      p.street||'',
+        'NR DOMU/DZ': p.houseNr||'',
+        MIASTO:     p.city||'Grudziądz',
+        LAT:        item.lat??'',
+        LNG:        item.lng??'',
+        GPS:        item.lat?item.lat.toFixed(5)+', '+item.lng.toFixed(5):'',
+        EDYTOWANO:  item.updatedAt||item.createdAt||''
+      };
+    });
+    const ws=XLSX.utils.json_to_sheet(rows);
+    ws['!cols']=[{wch:6},{wch:26},{wch:26},{wch:14},{wch:16},{wch:12},{wch:12},{wch:24},{wch:18}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,tab==='keys'?'Klucze':'Piloty');
+    XLSX.writeFile(wb,(tab==='keys'?'klucze':'piloty')+'_'+Date.now()+'.xlsx');
+    setStatus('✓ Pobrano XLSX ('+data.length+' pozycji)');
+  }catch(err){ setStatus('❌ Błąd XLSX: '+err.message); }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────────────────────────────────────────────
+function saveToMem(){
+  localStorage.setItem(LS.keys,   JSON.stringify(state.keys));
+  localStorage.setItem(LS.pilots, JSON.stringify(state.pilots));
+  updateUI();
+}
+function updateUI(){
+  document.getElementById('cnt-keys').textContent   = '('+state.keys.length+')';
+  document.getElementById('cnt-pilots').textContent = '('+state.pilots.length+')';
+  document.getElementById('save-btn').disabled      = state[tab].length===0;
+}
+function toggleDD(e){
+  e.stopPropagation();
+  document.getElementById('ddmenu').classList.toggle('open');
+}
+document.addEventListener('click',()=>{
+  document.getElementById('ddmenu').classList.remove('open');
+  const r=document.getElementById('ms-results');
+  if(r) r.style.display='none';
+});
 </script>
 </body>
 </html>
