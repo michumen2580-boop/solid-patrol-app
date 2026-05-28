@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="Solid Patrol"/>
+<link rel="manifest" id="manifest-link"/>
+<script>
+// Inline manifest – nie wymaga pliku manifest.json
+(function(){
+  const m = {
+    name: "SOLID PATROL 110",
+    short_name: "Solid Patrol",
+    description: "System zarządzania kluczami i pilotami – Grudziądz",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#0d0d1a",
+    theme_color: "#c62828",
+    orientation: "portrait",
+    icons: [
+      { src: "10679.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+      { src: "10679.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(m)], {type:'application/json'});
+  document.getElementById('manifest-link').href = URL.createObjectURL(blob);
+})();
+</script>
+<title>SOLID PATROL 110 – Grudziądz</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Courier New',monospace;background:#0d0d1a;color:#fff;display:flex;flex-direction:column}
+
+/* ── NAGŁÓWEK ── */
+#brand{background:linear-gradient(135deg,#0a0a0a,#1a0000);border-bottom:3px solid #c62828;padding:7px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#brand img{height:48px;width:auto;border-radius:4px;object-fit:contain;flex-shrink:0}
+#brand-text .b1{font-family:sans-serif;font-size:18px;font-weight:900;color:#ffd600;letter-spacing:2px;line-height:1.1}
+#brand-text .b2{font-family:sans-serif;font-size:10px;font-weight:700;color:#aaa;letter-spacing:3px}
+#brand-text .b3{font-family:sans-serif;font-size:9px;color:#c62828;font-weight:700;letter-spacing:1px}
+
+/* ── BANER PWA ── */
+#install-bar{display:none;background:#0a200a;border-bottom:2px solid #66bb6a;padding:9px 12px;flex-shrink:0;align-items:center;gap:8px}
+#install-bar.show{display:flex}
+#install-bar span{flex:1;font-size:12px;color:#a5d6a7}
+#install-bar .ibtn{background:#66bb6a;color:#000;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;border:none;cursor:pointer}
+#install-bar .iclose{background:transparent;color:#555;font-size:18px;padding:0 4px;border:none;cursor:pointer;line-height:1}
+
+/* ── TOPBAR ── */
+#topbar{background:#111122;border-bottom:1px solid #1e1e2e;padding:8px 12px;display:flex;flex-direction:column;gap:7px;flex-shrink:0}
+.row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+button{font-family:'Courier New',monospace;cursor:pointer;border:none;border-radius:6px;font-weight:700;font-size:12px;white-space:nowrap}
+button:disabled{opacity:.35;cursor:not-allowed}
+.tab-btn{background:#0d0d1a;color:#fff;border:1px solid #c62828;padding:6px 12px}
+.tab-btn.active{background:#c62828}
+.view-btn{background:transparent;color:#777;border:1px solid #2a2a3a;padding:5px 9px}
+.view-btn.active{background:#2a2a3a;color:#fff}
+#search-bar{flex:1;min-width:120px;background:#0d0d1a;border:1px solid #2a2a3a;color:#fff;padding:7px 11px;border-radius:8px;font-family:'Courier New',monospace;font-size:13px;outline:none}
+#search-bar::placeholder{color:#555}
+.abtn{padding:6px 11px;border-radius:7px}
+.abtn-blue{background:#0d2137;color:#4fc3f7;border:1px solid #4fc3f7}
+.abtn-gold{background:#1a1200;color:#ffd600;border:1px solid #ffd600}
+.abtn-green{background:#0a1f0a;color:#81c784;border:1px solid #81c784}
+#ddwrap{position:relative;display:inline-block}
+#ddmenu{display:none;position:absolute;top:110%;right:0;z-index:9999;background:#111122;border:1px solid #2a2a3a;border-radius:8px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.9);min-width:210px}
+#ddmenu.open{display:block}
+#ddmenu button{display:block;width:100%;padding:11px 16px;background:transparent;color:#fff;text-align:left;font-size:13px;border-bottom:1px solid #1a1a2a;border-radius:0}
+#ddmenu button:hover{background:#1e1e2e}
+#statusbar{font-size:11px;color:#888;min-height:13px;padding-left:2px}
+#progwrap{background:#0d0d1a;border-radius:3px;height:4px;overflow:hidden;display:none;margin-top:2px}
+#progbar{height:100%;background:#c62828;width:0%;transition:width .4s}
+
+/* ── CONTENT ── */
+#content{flex:1;overflow:hidden;position:relative;min-height:0}
+#map{height:100%;width:100%;display:block}
+
+/* Wyszukiwarka na mapie – zwijana */
+#map-search-ctrl{position:absolute;top:10px;left:50px;z-index:999}
+#ms-toggle{background:rgba(10,10,20,.92);color:#fff;border:2px solid #c62828;border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.6)}
+#ms-toggle.open{background:#c62828;border-color:#900}
+#ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;background:rgba(10,10,20,.97);border:2px solid #c62828;border-radius:0 8px 8px 8px;box-shadow:0 4px 16px rgba(0,0,0,.8);width:260px;z-index:1000}
+#ms-panel.open{display:block}
+#ms-input{width:100%;background:transparent;color:#fff;border:none;padding:9px 13px;font-family:'Courier New',monospace;font-size:13px;outline:none}
+#ms-input::placeholder{color:#666}
+#ms-results{display:none;background:#0d0d1a;border-top:1px solid #c62828;max-height:250px;overflow-y:auto;border-radius:0 0 6px 6px}
+.msri{padding:10px 13px;border-bottom:1px solid #1a1a2e;cursor:pointer}
+.msri:last-child{border-bottom:none}
+.msri:hover,.msri:active{background:#1e1e3a}
+.msri-label{font-size:10px;color:#c62828;font-weight:700;letter-spacing:1px;display:block}
+.msri-name{font-size:13px;font-weight:700;color:#fff;display:block}
+.msri-addr{font-size:11px;color:#888;font-family:sans-serif;display:block}
+
+/* Przyciski na mapie */
+#add-btn{position:absolute;top:10px;right:10px;z-index:998;background:#111122;color:#fff;border:2px solid #444;border-radius:8px;padding:8px 13px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#add-btn.active{background:#c62828;border-color:#c62828}
+#gps-btn{position:absolute;bottom:26px;right:10px;z-index:998;background:#1565C0;color:#fff;border:2px solid #fff;border-radius:50%;width:46px;height:46px;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+
+/* Pasek trybu ustawiania pinezki */
+#place-bar{display:none;position:absolute;bottom:80px;left:50%;transform:translateX(-50%);z-index:999;background:#c62828;color:#fff;padding:10px 18px;border-radius:24px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.7);text-align:center;white-space:nowrap;cursor:pointer}
+
+/* ── LISTA ── */
+#list-view{height:100%;overflow-y:auto;padding:12px;display:none}
+#list-empty{color:#444;text-align:center;margin-top:50px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{border-bottom:2px solid #2a2a3a;position:sticky;top:0;background:#111122;z-index:10}
+th{padding:8px 6px;color:#888;font-weight:700;text-align:left;font-size:11px;letter-spacing:.5px}
+tbody tr{border-bottom:1px solid #151525}
+tbody tr:hover{background:#151530}
+td{padding:7px 6px;vertical-align:middle}
+.td-nr-ok{font-weight:900;font-size:14px;color:#66bb6a}
+.td-nr-err{font-weight:900;font-size:14px;color:#ef5350}
+.td-name{font-weight:700;font-size:13px;color:#fff}
+.td-addr{color:#888;font-size:11px;font-family:sans-serif;margin-top:1px}
+.td-ok{color:#66bb6a;font-size:10px;font-weight:700}
+.td-err{color:#ef5350;font-size:10px;font-weight:700}
+.btn-sm{background:#1e1e3a;color:#ccc;padding:5px 7px;font-size:11px;border-radius:4px;border:none;cursor:pointer;margin:1px}
+.btn-pin{background:#0a2a0a;color:#a5d6a7}
+.btn-del{background:#2a0a0a;color:#ef9a9a}
+
+/* ── POPUP ── */
+.leaflet-popup-content-wrapper{background:#0d0d1a;color:#fff;border:2px solid #c62828;border-radius:10px;padding:0;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.9)}
+.leaflet-popup-content{margin:0;min-width:230px;max-width:290px}
+.leaflet-popup-tip{background:#c62828}
+.pop-head{background:#c62828;padding:9px 13px;display:flex;align-items:center;gap:9px}
+.pop-badge{background:#fff;color:#c62828;font-size:14px;font-weight:900;padding:2px 8px;border-radius:5px;font-family:'Courier New',monospace;flex-shrink:0}
+.pop-title{font-family:sans-serif;font-size:13px;font-weight:700;color:#fff;line-height:1.2;word-break:break-word}
+.pop-body{padding:11px 13px;font-family:sans-serif;font-size:13px;line-height:1.6;color:#ccc}
+.pop-addr{color:#fff;margin-bottom:3px;font-size:13px}
+.pop-city{color:#aaa;font-size:12px}
+.pop-gps{color:#555;font-size:10px;font-family:'Courier New',monospace;margin-top:3px}
+.pop-ts{color:#444;font-size:10px;margin-top:6px;border-top:1px solid #1e1e2e;padding-top:6px}
+.pop-nav{display:block;width:100%;background:#1565C0;color:#fff;text-align:center;padding:9px;border-radius:6px;margin-top:10px;text-decoration:none;font-weight:700;font-size:13px;font-family:sans-serif}
+.pop-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid #1e1e2e}
+.pop-actions button{flex:1;padding:8px;border-radius:6px;font-size:12px;font-family:sans-serif;cursor:pointer;font-weight:700;border:none}
+.pop-edit{background:#1a237e;color:#90caf9}
+.pop-del{background:#3e0000;color:#ef9a9a}
+
+/* ── MODAŁY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:3000;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.mbox{background:#111122;border-radius:12px;padding:20px;width:100%;max-width:370px;box-shadow:0 8px 40px rgba(0,0,0,.9);border:1px solid #2a2a3a}
+.mbox h3{color:#c62828;margin-bottom:14px;font-size:16px}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:11px;color:#888;margin-bottom:4px;letter-spacing:.5px}
+.field input{width:100%;background:#0d0d1a;border:1px solid #2a2a3a;color:#fff;padding:8px 11px;border-radius:6px;font-family:'Courier New',monospace;font-size:13px;outline:none}
+.field input:focus{border-color:#c62828}
+.mbtns{display:flex;gap:8px;margin-top:15px}
+.mbtns button{flex:1;padding:10px;border-radius:7px;font-size:13px;font-family:'Courier New',monospace;font-weight:700;border:none;cursor:pointer}
+.mbtn-cancel{background:#1e1e2e;color:#aaa}
+.mbtn-save{background:#c62828;color:#fff}
+#mgps-info{font-size:11px;color:#888;margin-bottom:8px;background:#0d0d1a;padding:6px 10px;border-radius:4px;border-left:3px solid #c62828}
+.big-btn{width:100%;padding:13px;font-size:14px;border-radius:8px;font-family:'Courier New',monospace;font-weight:700;border:none;cursor:pointer;margin-bottom:9px}
+#nodata-overlay p{font-size:13px;color:#888;margin-bottom:18px;font-family:sans-serif;line-height:1.5;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- NAGŁÓWEK -->
+<div id="brand">
+  <img id="logo-img" src="10679.png" alt="" onerror="this.style.display='none'"/>
+  <div id="brand-text">
+    <div class="b1">SOLID PATROL 110</div>
+    <div class="b2">GRUDZIĄDZ</div>
+    <div class="b3">SYSTEM ZARZĄDZANIA KLUCZAMI I PILOTAMI</div>
+  </div>
+</div>
+
+<!-- BANER INSTALACJI PWA -->
+<div id="install-bar">
+  <span>📲 Zainstaluj aplikację na pulpicie telefonu!</span>
+  <button class="ibtn" onclick="installPwa()">Zainstaluj</button>
+  <button class="ibtn" style="background:#1565C0;color:#fff;margin-left:4px" onclick="showIosInstall()">iOS</button>
+  <button class="iclose" onclick="document.getElementById('install-bar').classList.remove('show')">×</button>
+</div>
+
+<!-- MODAL iOS INSTALL -->
+<div id="ios-modal" class="overlay">
+  <div class="mbox" style="text-align:center">
+    <h3 style="margin-bottom:12px">📲 Instalacja na iPhone/iPad</h3>
+    <p style="font-family:sans-serif;font-size:13px;color:#ccc;line-height:1.7;margin-bottom:16px">
+      1. Otwórz tę stronę w <b style="color:#fff">Safari</b><br>
+      2. Naciśnij przycisk <b style="color:#4fc3f7">Udostępnij</b> (kwadrat ze strzałką ↑)<br>
+      3. Wybierz <b style="color:#81c784">„Dodaj do ekranu głównego"</b><br>
+      4. Naciśnij <b style="color:#ffd600">Dodaj</b>
+    </p>
+    <button class="mbtn-save" style="width:100%;padding:11px;font-size:14px" onclick="document.getElementById('ios-modal').classList.remove('open')">OK, rozumiem</button>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="row">
+    <button class="tab-btn active" id="tab-keys"   onclick="switchTab('keys')">🔑 KLUCZE <span id="cnt-keys">(0)</span></button>
+    <button class="tab-btn"        id="tab-pilots" onclick="switchTab('pilots')">📡 PILOTY <span id="cnt-pilots">(0)</span></button>
+    <div style="flex:1"></div>
+    <button class="view-btn active" id="vbtn-map"  onclick="switchView('map')">🗺 Mapa</button>
+    <button class="view-btn"        id="vbtn-list" onclick="switchView('list')">📋 Lista</button>
+  </div>
+  <div class="row">
+    <input id="search-bar" placeholder="🔍 Szukaj w bazie..." oninput="onSearch(this.value)" onkeyup="onSearch(this.value)" autocomplete="off"/>
+    <button class="abtn abtn-blue" onclick="exportPdf()">📄 PDF</button>
+    <button class="abtn abtn-gold" onclick="triggerJson()">♻️ Kopia</button>
+    <div id="ddwrap">
+      <button class="abtn abtn-green" id="save-btn" onclick="toggleDD(event)" disabled>💾 Eksport ▾</button>
+      <div id="ddmenu">
+        <button onclick="exportPdf()">📄 Raport PDF</button>
+        <button onclick="exportXlsx()">📊 Baza XLSX</button>
+        <button onclick="exportJson()">💽 Kopia JSON</button>
+      </div>
+    </div>
+  </div>
+  <div id="statusbar">Ładowanie…</div>
+  <div id="progwrap"><div id="progbar"></div></div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+  <!-- MAPA -->
+  <div id="map"></div>
+
+  <!-- Wyszukiwarka na mapie - zwijana -->
+  <div id="map-search-ctrl">
+    <button id="ms-toggle" onclick="toggleMapSearch()">🔍 Szukaj</button>
+    <div id="ms-panel">
+      <input id="ms-input" type="text" placeholder="Szukaj obiektu na mapie..." oninput="mapSearch(this.value)" autocomplete="off"/>
+      <div id="ms-results"></div>
+    </div>
+  </div>
+
+  <button id="add-btn" onclick="toggleAddMode()">+ Dodaj ręcznie</button>
+  <button id="gps-btn" onclick="locateMe()" title="Moja pozycja GPS">📍</button>
+  <div id="place-bar" onclick="exitPlaceMode()">📍 Kliknij na mapie – <span id="place-name"></span> &nbsp;[✕ Anuluj]</div>
+
+  <!-- LISTA -->
+  <div id="list-view">
+    <div id="list-empty" style="display:none">Brak danych lub brak wyników wyszukiwania.</div>
+    <table id="data-table" style="display:none">
+      <thead>
+        <tr><th>NR</th><th>NAZWA / ADRES</th><th>GPS</th><th>AKCJE</th></tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL: DODAJ / EDYTUJ -->
+<div id="modal-edit" class="overlay">
+  <div class="mbox">
+    <h3 id="modal-title">📍 Dodaj nową pozycję</h3>
+    <div class="field"><label>NUMER OBIEKTU *</label><input id="m-nr" placeholder="np. 29"/></div>
+    <div class="field"><label>NAZWA</label><input id="m-name" placeholder="np. Firma XYZ"/></div>
+    <div class="field"><label>ULICA + NR DOMU / NR DZIAŁKI</label><input id="m-addr" placeholder="np. Paderewskiego 5 lub dz. 123/4"/></div>
+    <div class="field"><label>MIASTO (puste = Grudziądz)</label><input id="m-city" placeholder="Grudziądz"/></div>
+    <div id="mgps-info">Brak GPS</div>
+    <div class="mbtns">
+      <button class="mbtn-cancel" onclick="closeModal()">Anuluj</button>
+      <button class="mbtn-save"   onclick="savePin()">💾 Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: BRAK DANYCH -->
+<div id="nodata-overlay" class="overlay">
+  <div class="mbox" style="text-align:center">
+    <h3 style="font-size:18px;margin-bottom:10px">⚠️ Baza jest pusta</h3>
+    <p>Pierwsze uruchomienie lub pamięć wyczyszczona.<br>Co chcesz zrobić?</p>
+    <button class="big-btn" style="background:#1a1200;color:#ffd600;border:1px solid #ffd600" onclick="closeNoData();triggerJson()">♻️ Wgraj Kopię Bazy (JSON)</button>
+    <button class="big-btn" style="background:#0d2137;color:#4fc3f7;border:1px solid #4fc3f7" onclick="closeNoData();triggerPdf()">📄 Załaduj nową z PDF</button>
+    <button class="big-btn" style="background:transparent;color:#555;border:1px solid #222;font-size:12px" onclick="closeNoData()">Pomiń – zacznę od pustej bazy</button>
+  </div>
+</div>
+
+<input type="file" id="file-pdf"  accept=".pdf"  style="display:none" onchange="handlePdf(event)"/>
+<input type="file" id="file-json" accept=".json" style="display:none" onchange="handleJson(event)"/>
+
+<!-- SKRYPTY CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════════
+// KONFIGURACJA
+// ═══════════════════════════════════════════════════════════════
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const LS = { keys:'solidKeys_v5', pilots:'solidPilots_v5' };
+
+// Bounding box woj. kujawsko-pomorskiego (z marginesem ~20km)
+const BBOX = { minLat:52.5, maxLat:54.0, minLng:17.3, maxLng:19.7 };
+const VIEWBOX = BBOX.minLng+','+BBOX.minLat+','+BBOX.maxLng+','+BBOX.maxLat;
+
+// ═══════════════════════════════════════════════════════════════
+// STAN APLIKACJI
+// ═══════════════════════════════════════════════════════════════
+let state      = { keys:[], pilots:[] };
+let tab        = 'keys';
+let currentView= 'map';
+let addMode    = false;
+let placeModeId= null;   // ID obiektu oczekującego na GPS
+let editingId  = null;
+let pendingLL  = null;
+let searchQ    = '';
+let map, clusterGroup, markerById = {}, userMarker = null;
+let deferredInstall = null;
+
+// ═══════════════════════════════════════════════════════════════
+// PWA – INSTALACJA
+// ═══════════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  // Inline Service Worker jako blob URL
+  const swCode = `
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => clients.claim());
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    caches.open('solidpatrol-v1').then(cache =>
+      fetch(e.request).then(resp => { cache.put(e.request, resp.clone()); return resp; })
+        .catch(() => caches.match(e.request))
+    )
+  );
+});`;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+// Wykrywanie iOS
+const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandalone = ('standalone' in navigator) && navigator.standalone;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  document.getElementById('install-bar').classList.add('show');
+});
+
+function installPwa() {
+  if (!deferredInstall) { showIosInstall(); return; }
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(() => {
+    deferredInstall = null;
+    document.getElementById('install-bar').classList.remove('show');
+  });
+}
+
+function showIosInstall() {
+  document.getElementById('ios-modal').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s || '').replace(/[&<>"']/g,
+    m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
+function ts() {
+  return new Date().toLocaleString('pl-PL', {
+    day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+}
+function uid()       { return Date.now() + Math.random(); }
+function setStatus(msg, spin) {
+  document.getElementById('statusbar').innerHTML =
+    spin ? '<span style="color:#c62828">⏳</span> ' + msg : msg;
+}
+function showProg(p) {
+  document.getElementById('progwrap').style.display = 'block';
+  document.getElementById('progbar').style.width = Math.min(p, 100) + '%';
+}
+function hideProg() {
+  document.getElementById('progwrap').style.display = 'none';
+  document.getElementById('progbar').style.width = '0%';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PARSER ADRESU → miasto / ulica / numer
+// ═══════════════════════════════════════════════════════════════
+const CITIES_RE = /\b(turznice|wałdowo|gubiny|miłoleśna|brzeźna|węgrowo|grudziądz)\b/i;
+
+function normalizeAddr(raw) {
+  return (raw || '')
+    .replace(/\bGr\.\s*/gi, 'Grudziądz ')
+    .replace(/\bGr\s+(?=[A-ZŁŚŻŹĆĄĘ])/gi, 'Grudziądz ')
+    .trim();
+}
+
+function parseAddress(raw) {
+  const s    = normalizeAddr(raw);
+  let city   = 'Grudziądz';
+  let rest   = s;
+  const cm   = s.match(CITIES_RE);
+  if (cm) {
+    city = cm[1].charAt(0).toUpperCase() + cm[1].slice(1);
+    rest = s.replace(CITIES_RE, '').replace(/^[,\s]+|[,\s]+$/g, '');
+  }
+  let houseNr = '', street = rest;
+  const dz = rest.match(/(?:dz\.?|działka)\s*([\w\/\-]+)/i);
+  if (dz) {
+    houseNr = 'dz.' + dz[1];
+    street  = rest.replace(dz[0], '').trim();
+  } else {
+    const nm = rest.match(/\s+(\d+[\w\/\-]*)$/);
+    if (nm) {
+      houseNr = nm[1];
+      street  = rest.slice(0, rest.lastIndexOf(nm[0])).trim();
+    }
+  }
+  return { city, street: street || rest, houseNr };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GEOKODOWANIE – sekwencyjne 1 req/s, tylko woj. kujawsko-pom.
+// ═══════════════════════════════════════════════════════════════
+async function geocodeOne(item) {
+  const parsed = parseAddress(item.address);
+  const city   = parsed.city || 'Grudziądz';
+  // Zawsze dodaj miasto i województwo do zapytania
+  const addrBase = normalizeAddr(item.address);
+  const queries  = [];
+
+  // Wariant 1: adres + miasto + województwo kujawsko-pomorskie
+  queries.push(addrBase + ', ' + city + ', woj. kujawsko-pomorskie, Polska');
+  // Wariant 2: adres + miasto
+  if (!addrBase.toLowerCase().includes(city.toLowerCase()))
+    queries.push(addrBase + ', ' + city + ', Polska');
+  // Wariant 3: samo miasto + województwo jako fallback
+  queries.push(city + ', woj. kujawsko-pomorskie, Polska');
+
+  const hdr = { 'Accept-Language':'pl', 'User-Agent':'SolidPatrol110/1.0' };
+
+  for (const addr of queries) {
+    // 1. Próba z viewbox bounded (wymuś region)
+    try {
+      const url = 'https://nominatim.openstreetmap.org/search'
+        + '?q=' + encodeURIComponent(addr)
+        + '&format=json&limit=5&countrycodes=pl'
+        + '&viewbox=' + VIEWBOX + '&bounded=1';
+      const data = await (await fetch(url, { headers: hdr })).json();
+      if (data && data[0]) {
+        const lat = parseFloat(data[0].lat), lng = parseFloat(data[0].lon);
+        if (inBbox(lat, lng)) return { lat, lng };
+      }
+    } catch(e) {}
+
+    // 2. Fallback bez bounded – akceptuj tylko wyniki z regionu
+    try {
+      const url2 = 'https://nominatim.openstreetmap.org/search'
+        + '?q=' + encodeURIComponent(addr)
+        + '&format=json&limit=10&countrycodes=pl';
+      const data2 = await (await fetch(url2, { headers: hdr })).json();
+      if (data2 && data2.length) {
+        for (const r of data2) {
+          const la = parseFloat(r.lat), ln = parseFloat(r.lon);
+          if (inBbox(la, ln)) return { lat: la, lng: ln };
+        }
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
+function inBbox(lat, lng) {
+  return lat >= BBOX.minLat && lat <= BBOX.maxLat &&
+         lng >= BBOX.minLng && lng <= BBOX.maxLng;
+}
+
+async function geocodeAll(items, onProg) {
+  const results = [];
+  for (let i = 0; i < items.length; i++) {
+    onProg(i + 1, items.length, items[i].address);
+    showProg((i + 1) / items.length * 100);
+    results.push(await geocodeOne(items[i]));
+    if (i < items.length - 1) await new Promise(r => setTimeout(r, 1100));
+  }
+  return results;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const k = localStorage.getItem(LS.keys);
+    const p = localStorage.getItem(LS.pilots);
+    if (k) state.keys   = JSON.parse(k);
+    if (p) state.pilots = JSON.parse(p);
+  } catch(e) {}
+
+  initMap();
+
+  // Pokaż baner PWA na iOS jeśli nie jest zainstalowana
+  if (isIos && !isInStandalone) {
+    document.getElementById('install-bar').classList.add('show');
+  }
+
+  if (!state.keys.length && !state.pilots.length) {
+    document.getElementById('nodata-overlay').classList.add('open');
+    setStatus('Baza pusta – wczytaj dane.');
+  } else {
+    setStatus('✓ Baza wczytana — Klucze: ' + state.keys.length + ', Piloty: ' + state.pilots.length);
+  }
+  switchTab('keys');
+});
+
+// ═══════════════════════════════════════════════════════════════
+// MAPA
+// ═══════════════════════════════════════════════════════════════
+function initMap() {
+  map = L.map('map', { zoomControl: true }).setView([53.4837, 18.7536], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  }).addTo(map);
+
+  map.on('click', e => {
+    // Tryb ustawiania brakującej pinezki
+    if (placeModeId !== null) {
+      assignGps(placeModeId, e.latlng.lat, e.latlng.lng);
+      exitPlaceMode();
+      return;
+    }
+    // Tryb ręcznego dodawania
+    if (addMode) {
+      pendingLL = e.latlng;
+      openModal(null, e.latlng);
+      toggleAddMode(false);
+    }
+  });
+
+  map.on('locationfound', e => {
+    setStatus('✓ GPS: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5));
+    if (userMarker) userMarker.setLatLng(e.latlng);
+    else userMarker = L.circleMarker(e.latlng, {
+      radius:9, fillColor:'#2196F3', color:'#fff', weight:2, fillOpacity:.95
+    }).addTo(map).bindPopup('<b>📍 Twoja pozycja</b>');
+  });
+  map.on('locationerror', e => setStatus('❌ GPS: ' + e.message));
+}
+
+// ─── Tryb ustawiania pinezki dla obiektu bez GPS ───────────────
+function enterPlaceMode(id) {
+  placeModeId = id;
+  const item = state[tab].find(i => i.id === id);
+  document.getElementById('place-name').textContent =
+    item ? '#' + item.nr + ' ' + (item.name || '') : '';
+  document.getElementById('place-bar').style.display = 'block';
+  document.getElementById('add-btn').style.display   = 'none';
+  map.getContainer().style.cursor = 'crosshair';
+  if (currentView !== 'map') switchView('map');
+}
+function exitPlaceMode() {
+  placeModeId = null;
+  document.getElementById('place-bar').style.display = 'none';
+  document.getElementById('add-btn').style.display   = 'block';
+  map.getContainer().style.cursor = '';
+}
+function assignGps(id, lat, lng) {
+  const idx = state[tab].findIndex(i => i.id === id);
+  if (idx < 0) return;
+  state[tab][idx].lat       = lat;
+  state[tab][idx].lng       = lng;
+  state[tab][idx].updatedAt = ts();
+  saveToMem();
+  syncMarkers();
+  if (currentView === 'list') renderList();
+  setStatus('✓ Pinezka ustawiona dla #' + state[tab][idx].nr);
+}
+
+// ─── Wyszukiwarka na mapie (zwijana) ──────────────────────────
+function toggleMapSearch() {
+  const panel = document.getElementById('ms-panel');
+  const btn   = document.getElementById('ms-toggle');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  if (open) setTimeout(() => document.getElementById('ms-input').focus(), 80);
+  else {
+    document.getElementById('ms-input').value  = '';
+    document.getElementById('ms-results').style.display = 'none';
+  }
+}
+function mapSearch(q) {
+  const div = document.getElementById('ms-results');
+  if (!q.trim()) { div.style.display = 'none'; return; }
+  const sq   = q.toLowerCase();
+  const hits = state[tab].filter(it => it.lat && (
+    (it.nr || '').toLowerCase().includes(sq) ||
+    (it.name || '').toLowerCase().includes(sq) ||
+    (it.address || '').toLowerCase().includes(sq)
+  )).slice(0, 8);
+
+  div.innerHTML = hits.length
+    ? hits.map(it => `
+        <div class="msri" onclick="focusMarker(${it.id})">
+          <span class="msri-label">${tab === 'keys' ? 'KLUCZ' : 'PILOT'} #${esc(it.nr)}</span>
+          <span class="msri-name">${esc(it.name)}</span>
+          <span class="msri-addr">${esc(it.address)}</span>
+        </div>`).join('')
+    : '<div class="msri"><span class="msri-addr">Brak wyników</span></div>';
+  div.style.display = 'block';
+}
+function focusMarker(id) {
+  document.getElementById('ms-results').style.display = 'none';
+  document.getElementById('ms-input').value = '';
+  document.getElementById('ms-panel').classList.remove('open');
+  document.getElementById('ms-toggle').classList.remove('open');
+  const m = markerById[id];
+  if (!m) return;
+  clusterGroup.zoomToShowLayer(m, () => m.openPopup());
+}
+
+// ─── Synchronizacja pinezek ────────────────────────────────────
+function syncMarkers() {
+  if (clusterGroup) map.removeLayer(clusterGroup);
+  clusterGroup = L.markerClusterGroup({
+    disableClusteringAtZoom: 16,
+    maxClusterRadius: 50,
+    iconCreateFunction: function(c) {
+      return L.divIcon({
+        html: '<div style="background:#c62828;color:#fff;border-radius:50%;width:38px;height:38px;'
+          + 'display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;'
+          + 'border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)">'
+          + c.getChildCount() + '</div>',
+        iconSize: [38, 38], className: ''
+      });
+    }
+  });
+  markerById = {};
+
+  const sq      = searchQ.toLowerCase();
+  const visible = sq
+    ? state[tab].filter(it =>
+        (it.nr      || '').toLowerCase().includes(sq) ||
+        (it.name    || '').toLowerCase().includes(sq) ||
+        (it.address || '').toLowerCase().includes(sq))
+    : state[tab];
+
+  for (const item of visible) {
+    if (!item.lat || !item.lng) continue;
+    const icon = L.divIcon({
+      html: '<div style="background:#c62828;color:#fff;border-radius:50% 50% 50% 0;'
+        + 'width:36px;height:36px;display:flex;align-items:center;justify-content:center;'
+        + 'font-size:11px;font-weight:900;border:2px solid #fff;'
+        + 'box-shadow:0 3px 10px rgba(0,0,0,.6);transform:rotate(-45deg);'
+        + "font-family:'Courier New',monospace\">"
+        + '<span style="transform:rotate(45deg)">' + esc(item.nr) + '</span></div>',
+      iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -38], className: ''
+    });
+    const m = L.marker([item.lat, item.lng], { icon: icon, draggable: true });
+    m.bindPopup(buildPopup(item), { maxWidth: 300 });
+    m.on('dragend', ev => {
+      const ll  = ev.target.getLatLng();
+      const idx = state[tab].findIndex(i => i.id === item.id);
+      if (idx > -1) {
+        state[tab][idx].lat       = ll.lat;
+        state[tab][idx].lng       = ll.lng;
+        state[tab][idx].updatedAt = ts();
+        m.getPopup().setContent(buildPopup(state[tab][idx]));
+        saveToMem();
+        if (currentView === 'list') renderList();
+      }
+    });
+    markerById[item.id] = m;
+    clusterGroup.addLayer(m);
+  }
+  map.addLayer(clusterGroup);
+}
+
+function buildPopup(item) {
+  const p   = parseAddress(item.address);
+  const nav = 'https://www.google.com/maps/dir/?api=1&destination=' + item.lat + ',' + item.lng;
+  return '<div class="pop-head">'
+    + '<span class="pop-badge">#' + esc(item.nr) + '</span>'
+    + '<span class="pop-title">' + esc(item.name) + '</span></div>'
+    + '<div class="pop-body">'
+    + '<div class="pop-addr">'
+    + (p.street ? '🏠 ' + esc(p.street) + ' ' + esc(p.houseNr) : '📍 ' + esc(item.address))
+    + '</div>'
+    + '<div class="pop-city">📌 ' + esc(p.city) + '</div>'
+    + '<div class="pop-gps">' + (item.lat ? item.lat.toFixed(6) + ', ' + item.lng.toFixed(6) : '') + '</div>'
+    + (item.updatedAt ? '<div class="pop-ts">✏️ ' + esc(item.updatedAt) + '</div>' : '')
+    + '<a href="' + nav + '" target="_blank" class="pop-nav">🧭 Wyznacz Trasę Google Maps</a>'
+    + '<div class="pop-actions">'
+    + '<button class="pop-edit" onclick="popEdit(' + item.id + ')">✏️ Edytuj</button>'
+    + '<button class="pop-del"  onclick="popDel('  + item.id + ')">🗑️ Usuń</button>'
+    + '</div></div>';
+}
+
+function popEdit(id) { map.closePopup(); openModal(id); }
+function popDel(id) {
+  if (!confirm('Usunąć ten obiekt z bazy?')) return;
+  state[tab] = state[tab].filter(i => i.id !== id);
+  saveToMem(); syncMarkers(); renderList();
+}
+
+function fitMap() {
+  if (clusterGroup && clusterGroup.getLayers().length > 0)
+    map.fitBounds(clusterGroup.getBounds(), { padding: [50, 50], maxZoom: 16 });
+}
+function locateMe() {
+  setStatus('⏳ Szukam GPS…', true);
+  map.locate({ setView: true, maxZoom: 16 });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ZAKŁADKI / WIDOKI
+// ═══════════════════════════════════════════════════════════════
+function switchTab(t) {
+  tab = t;
+  document.getElementById('tab-keys').classList.toggle('active',   t === 'keys');
+  document.getElementById('tab-pilots').classList.toggle('active', t === 'pilots');
+  syncMarkers();
+  renderList();
+  updateUI();
+  if (currentView === 'map') setTimeout(fitMap, 200);
+}
+
+function switchView(v) {
+  currentView = v;
+  document.getElementById('vbtn-map').classList.toggle('active',  v === 'map');
+  document.getElementById('vbtn-list').classList.toggle('active', v === 'list');
+  document.getElementById('map').style.display           = v === 'map'  ? 'block' : 'none';
+  document.getElementById('list-view').style.display     = v === 'list' ? 'block' : 'none';
+  document.getElementById('add-btn').style.display       = v === 'map'  ? 'block' : 'none';
+  document.getElementById('gps-btn').style.display       = v === 'map'  ? 'flex'  : 'none';
+  document.getElementById('map-search-ctrl').style.display = v === 'map' ? 'block' : 'none';
+  if (v === 'map') { setTimeout(() => { map.invalidateSize(); fitMap(); }, 150); }
+  if (v === 'list') renderList();
+}
+
+// ─── Debounced search handler ──────────────────────────────────
+let _searchTimer = null;
+function onSearchDebounced(q) {
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(() => onSearch(q), 120);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WYSZUKIWANIE W BAZIE (topbar)
+// ═══════════════════════════════════════════════════════════════
+function onSearch(q) {
+  searchQ = q.trim();
+  syncMarkers();   // filtruj pinezki na mapie
+  if (currentView === 'list') renderList();    // filtruj listę
+  // Pokaż licznik wyników w statusbar
+  if (searchQ) {
+    const sq = searchQ.toLowerCase();
+    const hits = state[tab].filter(it =>
+      (it.nr || '').toLowerCase().includes(sq) ||
+      (it.name || '').toLowerCase().includes(sq) ||
+      (it.address || '').toLowerCase().includes(sq));
+    setStatus('🔍 Znaleziono: ' + hits.length + ' wyników dla "' + searchQ + '"');
+  } else {
+    setStatus('✓ Baza: Klucze: ' + state.keys.length + ', Piloty: ' + state.pilots.length);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LISTA
+// ═══════════════════════════════════════════════════════════════
+function renderList() {
+  const sq   = searchQ.toLowerCase();
+  const rows = sq
+    ? state[tab].filter(it =>
+        (it.nr      || '').toLowerCase().includes(sq) ||
+        (it.name    || '').toLowerCase().includes(sq) ||
+        (it.address || '').toLowerCase().includes(sq))
+    : state[tab];
+
+  const tbl = document.getElementById('data-table');
+  const emp = document.getElementById('list-empty');
+  if (!rows.length) { tbl.style.display = 'none'; emp.style.display = 'block'; return; }
+  tbl.style.display = 'table'; emp.style.display = 'none';
+
+  document.getElementById('tbody').innerHTML = rows.map(item => {
+    const ok = !!(item.lat && item.lng);
+    return '<tr>'
+      + '<td class="' + (ok ? 'td-nr-ok' : 'td-nr-err') + '">#' + esc(item.nr) + '</td>'
+      + '<td><div class="td-name">' + esc(item.name) + '</div>'
+      + '<div class="td-addr">' + esc(item.address) + '</div></td>'
+      + '<td class="' + (ok ? 'td-ok' : 'td-err') + '">' + (ok ? '✓ GPS' : '✗ BRAK') + '</td>'
+      + '<td>'
+      + (!ok ? '<button class="btn-sm btn-pin" onclick="enterPlaceMode(' + item.id + ')" title="Ustaw pinezkę na mapie">📍 Ustaw</button>' : '')
+      + '<button class="btn-sm" onclick="openModal(' + item.id + ')">✏️</button>'
+      + '<button class="btn-sm btn-del" onclick="delItem(' + item.id + ')">🗑️</button>'
+      + '</td></tr>';
+  }).join('');
+}
+
+function delItem(id) {
+  if (!confirm('Usunąć?')) return;
+  state[tab] = state[tab].filter(i => i.id !== id);
+  saveToMem(); syncMarkers(); renderList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODAL DODAJ / EDYTUJ
+// ═══════════════════════════════════════════════════════════════
+function toggleAddMode(force) {
+  addMode = force !== undefined ? force : !addMode;
+  const btn = document.getElementById('add-btn');
+  btn.textContent = addMode ? '✕ Anuluj' : '+ Dodaj ręcznie';
+  btn.classList.toggle('active', addMode);
+}
+
+function openModal(id, latlng) {
+  editingId = id || null;
+  document.getElementById('modal-title').textContent =
+    id ? '✏️ Edytuj pozycję' : '📍 Dodaj nową pozycję';
+
+  if (id) {
+    const item = state[tab].find(i => i.id === id);
+    if (!item) return;
+    pendingLL = { lat: item.lat, lng: item.lng };
+    const p   = parseAddress(item.address);
+    document.getElementById('m-nr').value   = item.nr || '';
+    document.getElementById('m-name').value = item.name || '';
+    document.getElementById('m-addr').value = (p.street + (p.houseNr ? ' ' + p.houseNr : '')) || item.address || '';
+    document.getElementById('m-city').value = p.city || 'Grudziądz';
+  } else {
+    pendingLL = latlng || null;
+    document.getElementById('m-nr').value   = '';
+    document.getElementById('m-name').value = '';
+    document.getElementById('m-addr').value = '';
+    document.getElementById('m-city').value = 'Grudziądz';
+  }
+
+  document.getElementById('mgps-info').textContent =
+    (pendingLL && pendingLL.lat)
+      ? 'GPS: ' + pendingLL.lat.toFixed(5) + ', ' + pendingLL.lng.toFixed(5)
+      : '⚠ Brak GPS – obiekt trafi tylko na listę';
+
+  document.getElementById('modal-edit').classList.add('open');
+  setTimeout(() => document.getElementById('m-nr').focus(), 120);
+}
+
+function closeModal()  { document.getElementById('modal-edit').classList.remove('open'); }
+function closeNoData() { document.getElementById('nodata-overlay').classList.remove('open'); }
+
+function savePin() {
+  const nr = document.getElementById('m-nr').value.trim();
+  if (!nr) { alert('Numer obiektu jest wymagany!'); return; }
+  const name    = document.getElementById('m-name').value.trim();
+  const addr    = document.getElementById('m-addr').value.trim();
+  const city    = document.getElementById('m-city').value.trim() || 'Grudziądz';
+  const fullAddr = addr + (city && !addr.toLowerCase().includes(city.toLowerCase()) ? ', ' + city : '');
+  const now = ts();
+
+  if (editingId) {
+    const idx = state[tab].findIndex(i => i.id === editingId);
+    if (idx > -1) state[tab][idx] = {
+      ...state[tab][idx], nr, name, address: fullAddr, updatedAt: now
+    };
+  } else {
+    state[tab].push({
+      id: uid(), nr, name, address: fullAddr,
+      lat: pendingLL ? pendingLL.lat : null,
+      lng: pendingLL ? pendingLL.lng : null,
+      createdAt: now, updatedAt: now
+    });
+  }
+  closeModal();
+  saveToMem();
+  syncMarkers();
+  renderList();
+  updateUI();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WCZYTAJ PDF
+// ═══════════════════════════════════════════════════════════════
+function triggerPdf() { document.getElementById('file-pdf').click(); }
+
+async function handlePdf(e) {
+  const file = e.target.files[0]; if (!file) return;
+  e.target.value = '';
+  setStatus('⏳ Wczytuję PDF…', true); showProg(0);
+  try {
+    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const pg = await pdf.getPage(i);
+      const ct = await pg.getTextContent();
+      let line = '', lastY = null;
+      for (const it of ct.items) {
+        const y = it.transform[5];
+        if (lastY !== null && Math.abs(y - lastY) > 5) { fullText += line + '\n'; line = ''; }
+        line += it.str + '  '; lastY = y;
+      }
+      if (line) fullText += line + '\n';
+    }
+    const parsed = parsePdfLines(fullText);
+    if (!parsed.length) { setStatus('❌ Nie znaleziono danych w PDF.'); hideProg(); return; }
+
+    setStatus('⏳ Znaleziono ' + parsed.length + ' poz. Geokuduję (1 req/s)…', true);
+    const coords = await geocodeAll(parsed, (done, total, addr) => {
+      setStatus('⏳ Geokuduję ' + done + '/' + total + ': ' + addr, true);
+    });
+    state[tab] = parsed.map((item, i) => ({
+      ...item,
+      lat: coords[i] ? coords[i].lat : null,
+      lng: coords[i] ? coords[i].lng : null
+    }));
+    saveToMem(); closeNoData(); syncMarkers(); renderList(); updateUI(); hideProg();
+    const ok = state[tab].filter(x => x.lat).length;
+    setStatus('✓ Załadowano ' + state[tab].length + ' poz. — ' + ok + ' z GPS, '
+      + (state[tab].length - ok) + ' bez GPS');
+    setTimeout(fitMap, 400);
+  } catch(err) { setStatus('❌ Błąd PDF: ' + err.message); hideProg(); }
+}
+
+function parsePdfLines(text) {
+  const items = [];
+  for (const line of text.split('\n')) {
+    const raw = line.trim()
+      .replace(/\bGr\.\s*/gi, 'Grudziądz ')
+      .replace(/\bGr\s+(?=[A-ZŁŚŻŹĆĄĘ])/gi, 'Grudziądz ');
+    const parts = raw.split(/\s{2,}|\t/).map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 2 && /^\d+/.test(parts[0])) {
+      items.push({
+        id: uid(), nr: parts[0],
+        address: parts[1] || '',
+        name:    parts[2] || '',
+        lat: null, lng: null,
+        createdAt: ts()
+      });
+    }
+  }
+  return items;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BACKUP JSON
+// ═══════════════════════════════════════════════════════════════
+function triggerJson() { document.getElementById('file-json').click(); }
+
+function exportJson() {
+  document.getElementById('ddmenu').classList.remove('open');
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a    = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(blob),
+    download: 'solid_backup_' + Date.now() + '.json'
+  });
+  a.click(); URL.revokeObjectURL(a.href);
+  setStatus('✓ Pobrano kopię JSON (' + state.keys.length + ' kluczy, ' + state.pilots.length + ' pilotów)');
+}
+
+function handleJson(e) {
+  const file = e.target.files[0]; if (!file) return;
+  e.target.value = '';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (Array.isArray(data.keys) && Array.isArray(data.pilots)) {
+        state = data; saveToMem(); closeNoData(); switchTab('keys');
+        setStatus('✓ Przywrócono: Klucze: ' + state.keys.length + ', Piloty: ' + state.pilots.length);
+        setTimeout(fitMap, 400);
+      } else { alert('Nieprawidłowy plik kopii zapasowej!'); }
+    } catch(err) { alert('Błąd JSON: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EKSPORT PDF – sanityzacja polskich liter (fix WinAnsi)
+// ═══════════════════════════════════════════════════════════════
+function san(s) {
+  return String(s || '')
+    .replace(/ą/g,'a').replace(/Ą/g,'A').replace(/ć/g,'c').replace(/Ć/g,'C')
+    .replace(/ę/g,'e').replace(/Ę/g,'E').replace(/ł/g,'l').replace(/Ł/g,'L')
+    .replace(/ń/g,'n').replace(/Ń/g,'N').replace(/ó/g,'o').replace(/Ó/g,'O')
+    .replace(/ś/g,'s').replace(/Ś/g,'S').replace(/ź/g,'z').replace(/Ź/g,'Z')
+    .replace(/ż/g,'z').replace(/Ż/g,'Z').replace(/[^\x20-\x7E]/g,'?');
+}
+
+async function exportPdf() {
+  document.getElementById('ddmenu').classList.remove('open');
+  const data = state[tab];
+  if (!data.length) { setStatus('Brak danych do eksportu.'); return; }
+  setStatus('⏳ Generuję PDF…', true);
+  try {
+    const { PDFDocument, rgb, StandardFonts } = PDFLib;
+    const doc  = await PDFDocument.create();
+    const font = await doc.embedFont(StandardFonts.Helvetica);
+    const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+    const [W, H] = [595, 842], M = 30;
+    let page = doc.addPage([W, H]), y = H - 40;
+    const RED  = rgb(0.78, 0.16, 0.16);
+    const GRAY = rgb(0.5,  0.5,  0.5);
+    const BLK  = rgb(0.08, 0.08, 0.08);
+
+    // Nagłówek
+    page.drawText('SOLID PATROL 110 GRUDZIĄDZ'.replace(/Ą/g,'A').replace(/Ź/g,'Z'),
+      { x:M, y, font:bold, size:14, color:RED }); y -= 18;
+    page.drawText(
+      san(tab === 'keys' ? 'REJESTR KLUCZY' : 'REJESTR PILOTOW')
+      + ' - ' + new Date().toLocaleDateString('pl-PL'),
+      { x:M, y, font:bold, size:10, color:BLK }); y -= 8;
+    page.drawLine({ start:{x:M,y}, end:{x:W-M,y}, thickness:1.5, color:RED }); y -= 13;
+
+    // Nagłówki kolumn
+    const cols = [0, 34, 134, 264, 374, 454];
+    ['NR','NAZWA','ULICA','NR/DZ','MIASTO','GPS'].forEach((h, i) =>
+      page.drawText(h, { x:M+cols[i], y, font:bold, size:8, color:GRAY }));
+    y -= 4;
+    page.drawLine({ start:{x:M,y}, end:{x:W-M,y}, thickness:.5, color:rgb(.8,.8,.8) });
+    y -= 11;
+
+    for (const item of data) {
+      if (y < 45) { page = doc.addPage([W, H]); y = H - 40; }
+      const p   = parseAddress(item.address);
+      const gps = item.lat ? item.lat.toFixed(4) + ' ' + item.lng.toFixed(4) : 'BRAK';
+      const row = [
+        san(item.nr).slice(0, 8),
+        san(item.name).slice(0, 22),
+        san(p.street).slice(0, 22),
+        san(p.houseNr).slice(0, 10),
+        san(p.city).slice(0, 14),
+        gps
+      ];
+      row.forEach((txt, i) => {
+        if (txt) page.drawText(txt, { x:M+cols[i], y, font, size:8, color:BLK });
+      });
+      // Czerwony pasek przy brakujących GPS
+      if (!item.lat)
+        page.drawRectangle({ x:M, y:y-1, width:3, height:10, color:RED, opacity:.6 });
+      y -= 12;
+    }
+
+    const bytes = await doc.save();
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(new Blob([bytes], { type:'application/pdf' })),
+      download: (tab === 'keys' ? 'klucze' : 'piloty') + '_' + Date.now() + '.pdf'
+    });
+    a.click(); URL.revokeObjectURL(a.href);
+    setStatus('✓ PDF pobrany (' + data.length + ' poz.)');
+  } catch(err) { setStatus('❌ PDF: ' + err.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EKSPORT XLSX
+// ═══════════════════════════════════════════════════════════════
+function exportXlsx() {
+  document.getElementById('ddmenu').classList.remove('open');
+  const data = state[tab];
+  if (!data.length) { setStatus('Brak danych do eksportu.'); return; }
+  try {
+    const rows = data.map(item => {
+      const p = parseAddress(item.address);
+      return {
+        NR:           item.nr      || '',
+        NAZWA:        item.name    || '',
+        ULICA:        p.street     || '',
+        'NR DOMU/DZ': p.houseNr   || '',
+        MIASTO:       p.city       || 'Grudziądz',
+        LAT:          item.lat     || '',
+        LNG:          item.lng     || '',
+        GPS:          item.lat ? item.lat.toFixed(5) + ', ' + item.lng.toFixed(5) : '',
+        EDYTOWANO:    item.updatedAt || item.createdAt || ''
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [
+      {wch:6},{wch:24},{wch:24},{wch:12},{wch:14},
+      {wch:11},{wch:11},{wch:24},{wch:18}
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, tab === 'keys' ? 'Klucze' : 'Piloty');
+    XLSX.writeFile(wb, (tab === 'keys' ? 'klucze' : 'piloty') + '_' + Date.now() + '.xlsx');
+    setStatus('✓ XLSX pobrany (' + data.length + ' poz.)');
+  } catch(err) { setStatus('❌ XLSX: ' + err.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERY
+// ═══════════════════════════════════════════════════════════════
+function saveToMem() {
+  localStorage.setItem(LS.keys,   JSON.stringify(state.keys));
+  localStorage.setItem(LS.pilots, JSON.stringify(state.pilots));
+  updateUI();
+}
+function updateUI() {
+  document.getElementById('cnt-keys').textContent   = '(' + state.keys.length   + ')';
+  document.getElementById('cnt-pilots').textContent = '(' + state.pilots.length + ')';
+  document.getElementById('save-btn').disabled      = state[tab].length === 0;
+}
+function toggleDD(e) {
+  e.stopPropagation();
+  document.getElementById('ddmenu').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('ddmenu').classList.remove('open');
+});
+</script>
+</body>
+</html>
