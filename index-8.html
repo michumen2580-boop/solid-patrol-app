@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="Solid Patrol"/>
+<link rel="manifest" id="manifest-link"/>
+<script>
+// Inline manifest – nie wymaga pliku manifest.json
+(function(){
+  const m = {
+    name: "SOLID PATROL 110",
+    short_name: "Solid Patrol",
+    description: "System zarządzania kluczami i pilotami – Grudziądz",
+    start_url: "./",
+    display: "standalone",
+    background_color: "#0d0d1a",
+    theme_color: "#c62828",
+    orientation: "portrait",
+    icons: [
+      { src: "1773248633388.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+      { src: "1773248633388.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(m)], {type:'application/json'});
+  document.getElementById('manifest-link').href = URL.createObjectURL(blob);
+})();
+</script>
+<title>SOLID PATROL 110 – Grudziądz</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Courier New',monospace;background:#0d0d1a;color:#fff;display:flex;flex-direction:column}
+
+/* ── NAGŁÓWEK ── */
+#brand{background:linear-gradient(135deg,#0a0a0a,#1a0000);border-bottom:3px solid #c62828;padding:7px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#brand img{height:48px;width:auto;border-radius:4px;object-fit:contain;flex-shrink:0}
+#brand-text .b1{font-family:sans-serif;font-size:18px;font-weight:900;color:#ffd600;letter-spacing:2px;line-height:1.1}
+#brand-text .b2{font-family:sans-serif;font-size:10px;font-weight:700;color:#aaa;letter-spacing:3px}
+#brand-text .b3{font-family:sans-serif;font-size:9px;color:#c62828;font-weight:700;letter-spacing:1px}
+
+/* ── BANER PWA ── */
+#install-bar{display:none;background:#0a200a;border-bottom:2px solid #66bb6a;padding:9px 12px;flex-shrink:0;align-items:center;gap:8px}
+#install-bar.show{display:flex}
+#install-bar span{flex:1;font-size:12px;color:#a5d6a7}
+#install-bar .ibtn{background:#66bb6a;color:#000;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:700;border:none;cursor:pointer}
+#install-bar .iclose{background:transparent;color:#555;font-size:18px;padding:0 4px;border:none;cursor:pointer;line-height:1}
+
+/* ── TOPBAR ── */
+#topbar{background:#111122;border-bottom:1px solid #1e1e2e;padding:8px 12px;display:flex;flex-direction:column;gap:7px;flex-shrink:0}
+.row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+button{font-family:'Courier New',monospace;cursor:pointer;border:none;border-radius:6px;font-weight:700;font-size:12px;white-space:nowrap}
+button:disabled{opacity:.35;cursor:not-allowed}
+.tab-btn{background:#0d0d1a;color:#fff;border:1px solid #c62828;padding:6px 12px}
+.tab-btn.active{background:#c62828}
+.view-btn{background:transparent;color:#777;border:1px solid #2a2a3a;padding:5px 9px}
+.view-btn.active{background:#2a2a3a;color:#fff}
+.abtn{padding:6px 11px;border-radius:7px}
+.abtn-blue{background:#0d2137;color:#4fc3f7;border:1px solid #4fc3f7}
+.abtn-green{background:#0a1f0a;color:#81c784;border:1px solid #81c784}
+.abtn-orange{background:#1a0f00;color:#ffb74d;border:1px solid #ffb74d}
+#ddwrap{position:relative;display:inline-block}
+#ddmenu{display:none;position:absolute;top:110%;right:0;z-index:9999;background:#111122;border:1px solid #2a2a3a;border-radius:8px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.9);min-width:210px}
+#ddmenu.open{display:block}
+#ddmenu button{display:block;width:100%;padding:11px 16px;background:transparent;color:#fff;text-align:left;font-size:13px;border-bottom:1px solid #1a1a2a;border-radius:0}
+#ddmenu button:hover{background:#1e1e2e}
+#statusbar{font-size:11px;color:#888;min-height:13px;padding-left:2px}
+#progwrap{background:#0d0d1a;border-radius:3px;height:4px;overflow:hidden;display:none;margin-top:2px}
+#progbar{height:100%;background:#c62828;width:0%;transition:width .4s}
+
+/* ── CONTENT ── */
+#content{flex:1;overflow:hidden;position:relative;min-height:0}
+#map{height:100%;width:100%;display:block}
+
+/* Wyszukiwarka na mapie – zwijana */
+#map-search-ctrl{position:absolute;top:10px;left:50px;z-index:999}
+#ms-toggle{background:rgba(10,10,20,.92);color:#fff;border:2px solid #c62828;border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.6)}
+#ms-toggle.open{background:#c62828;border-color:#900}
+#ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;background:rgba(10,10,20,.97);border:2px solid #c62828;border-radius:0 8px 8px 8px;box-shadow:0 4px 16px rgba(0,0,0,.8);width:260px;z-index:1000}
+#ms-panel.open{display:block}
+#ms-input{width:100%;background:transparent;color:#fff;border:none;padding:9px 13px;font-family:'Courier New',monospace;font-size:13px;outline:none}
+#ms-input::placeholder{color:#666}
+#ms-results{display:none;background:#0d0d1a;border-top:1px solid #c62828;max-height:250px;overflow-y:auto;border-radius:0 0 6px 6px}
+.msri{padding:10px 13px;border-bottom:1px solid #1a1a2e;cursor:pointer}
+.msri:last-child{border-bottom:none}
+.msri:hover,.msri:active{background:#1e1e3a}
+.msri-label{font-size:10px;color:#c62828;font-weight:700;letter-spacing:1px;display:block}
+.msri-name{font-size:13px;font-weight:700;color:#fff;display:block}
+.msri-addr{font-size:11px;color:#888;font-family:sans-serif;display:block}
+
+/* Przyciski na mapie */
+#add-btn{position:absolute;top:10px;right:10px;z-index:998;background:#111122;color:#fff;border:2px solid #444;border-radius:8px;padding:8px 13px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#add-btn.active{background:#c62828;border-color:#c62828}
+#gps-btn{position:absolute;bottom:26px;right:10px;z-index:998;background:#1565C0;color:#fff;border:2px solid #fff;border-radius:50%;width:46px;height:46px;font-size:20px;box-shadow:0 4px 12px rgba(0,0,0,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+
+/* Pasek trybu ustawiania pinezki */
+#place-bar{display:none;position:absolute;bottom:80px;left:50%;transform:translateX(-50%);z-index:999;background:#c62828;color:#fff;padding:10px 18px;border-radius:24px;font-weight:700;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.7);text-align:center;white-space:nowrap;cursor:pointer}
+
+/* ── LISTA ── */
+#list-view{height:100%;overflow-y:auto;padding:12px;display:none;flex-direction:column;gap:8px}
+
+/* Pasek wyszukiwania w liście */
+#list-search-wrap{flex-shrink:0;padding-bottom:4px}
+#list-search-bar{width:100%;background:#0d0d1a;border:1px solid #2a2a3a;color:#fff;padding:8px 12px;border-radius:8px;font-family:'Courier New',monospace;font-size:13px;outline:none}
+#list-search-bar::placeholder{color:#555}
+#list-search-bar:focus{border-color:#c62828}
+
+#list-empty{color:#444;text-align:center;margin-top:50px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{border-bottom:2px solid #2a2a3a;position:sticky;top:0;background:#111122;z-index:10}
+th{padding:8px 6px;color:#888;font-weight:700;text-align:left;font-size:11px;letter-spacing:.5px}
+tbody tr{border-bottom:1px solid #151525}
+tbody tr:hover{background:#151530}
+td{padding:7px 6px;vertical-align:middle}
+.td-nr-ok{font-weight:900;font-size:14px;color:#66bb6a}
+.td-nr-err{font-weight:900;font-size:14px;color:#ef5350}
+.td-name{font-weight:700;font-size:13px;color:#fff}
+.td-addr{color:#888;font-size:11px;font-family:sans-serif;margin-top:1px}
+.td-ok{color:#66bb6a;font-size:10px;font-weight:700}
+.td-err{color:#ef5350;font-size:10px;font-weight:700}
+.btn-sm{background:#1e1e3a;color:#ccc;padding:5px 7px;font-size:11px;border-radius:4px;border:none;cursor:pointer;margin:1px}
+.btn-pin{background:#0a2a0a;color:#a5d6a7}
+.btn-del{background:#2a0a0a;color:#ef9a9a}
+
+/* ── POPUP ── */
+.leaflet-popup-content-wrapper{background:#0d0d1a;color:#fff;border:2px solid #c62828;border-radius:10px;padding:0;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.9)}
+.leaflet-popup-content{margin:0;min-width:230px;max-width:290px}
+.leaflet-popup-tip{background:#c62828}
+.pop-head{background:#c62828;padding:9px 13px;display:flex;align-items:center;gap:9px}
+.pop-badge{background:#fff;color:#c62828;font-size:14px;font-weight:900;padding:2px 8px;border-radius:5px;font-family:'Courier New',monospace;flex-shrink:0}
+.pop-title{font-family:sans-serif;font-size:13px;font-weight:700;color:#fff;line-height:1.2;word-break:break-word}
+.pop-body{padding:11px 13px;font-family:sans-serif;font-size:13px;line-height:1.6;color:#ccc}
+.pop-addr{color:#fff;margin-bottom:3px;font-size:13px}
+.pop-city{color:#aaa;font-size:12px}
+.pop-gps{color:#555;font-size:10px;font-family:'Courier New',monospace;margin-top:3px}
+.pop-ts{color:#444;font-size:10px;margin-top:6px;border-top:1px solid #1e1e2e;padding-top:6px}
+.pop-nav{display:block;width:100%;background:#1565C0;color:#fff;text-align:center;padding:9px;border-radius:6px;margin-top:10px;text-decoration:none;font-weight:700;font-size:13px;font-family:sans-serif}
+.pop-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid #1e1e2e}
+.pop-actions button{flex:1;padding:8px;border-radius:6px;font-size:12px;font-family:sans-serif;cursor:pointer;font-weight:700;border:none}
+.pop-edit{background:#1a237e;color:#90caf9}
+.pop-del{background:#3e0000;color:#ef9a9a}
+
+/* ── MODAŁY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:3000;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.mbox{background:#111122;border-radius:12px;padding:20px;width:100%;max-width:370px;box-shadow:0 8px 40px rgba(0,0,0,.9);border:1px solid #2a2a3a}
+.mbox h3{color:#c62828;margin-bottom:14px;font-size:16px}
+.field{margin-bottom:11px}
+.field label{display:block;font-size:11px;color:#888;margin-bottom:4px;letter-spacing:.5px}
+.field input{width:100%;background:#0d0d1a;border:1px solid #2a2a3a;color:#fff;padding:8px 11px;border-radius:6px;font-family:'Courier New',monospace;font-size:13px;outline:none}
+.field input:focus{border-color:#c62828}
+.mbtns{display:flex;gap:8px;margin-top:15px}
+.mbtns button{flex:1;padding:10px;border-radius:7px;font-size:13px;font-family:'Courier New',monospace;font-weight:700;border:none;cursor:pointer}
+.mbtn-cancel{background:#1e1e2e;color:#aaa}
+.mbtn-save{background:#c62828;color:#fff}
+#mgps-info{font-size:11px;color:#888;margin-bottom:8px;background:#0d0d1a;padding:6px 10px;border-radius:4px;border-left:3px solid #c62828}
+.big-btn{width:100%;padding:13px;font-size:14px;border-radius:8px;font-family:'Courier New',monospace;font-weight:700;border:none;cursor:pointer;margin-bottom:9px}
+#nodata-overlay p{font-size:13px;color:#888;margin-bottom:18px;font-family:sans-serif;line-height:1.5;text-align:center}
+
+/* ── PRZYCISK DODAJ NA PULPIT (na dole) ── */
+#install-fab{display:block;position:absolute;bottom:80px;left:10px;z-index:998;background:#1a1200;color:#ffd600;border:2px solid #ffd600;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;box-shadow:0 3px 12px rgba(0,0,0,.6);cursor:pointer;font-family:'Courier New',monospace}
+</style>
+</head>
+<body>
+
+<!-- NAGŁÓWEK -->
+<div id="brand">
+  <img id="logo-img" src="1773248633388.png" alt="" onerror="this.style.display='none'"/>
+  <div id="brand-text">
+    <div class="b1">SOLID PATROL 110</div>
+    <div class="b2">GRUDZIĄDZ</div>
+    <div class="b3">SYSTEM ZARZĄDZANIA KLUCZAMI I PILOTAMI</div>
+  </div>
+</div>
+
+<!-- BANER INSTALACJI PWA -->
+<div id="install-bar">
+  <span>📲 Zainstaluj aplikację na pulpicie telefonu!</span>
+  <button class="ibtn" onclick="installPwa()">Zainstaluj</button>
+  <button class="ibtn" style="background:#1565C0;color:#fff;margin-left:4px" onclick="showIosInstall()">iOS</button>
+  <button class="iclose" onclick="document.getElementById('install-bar').classList.remove('show')">×</button>
+</div>
+
+<!-- MODAL iOS INSTALL -->
+<div id="ios-modal" class="overlay">
+  <div class="mbox" style="text-align:center">
+    <h3 style="margin-bottom:12px">📲 Instalacja na iPhone/iPad</h3>
+    <p style="font-family:sans-serif;font-size:13px;color:#ccc;line-height:1.7;margin-bottom:16px">
+      1. Otwórz tę stronę w <b style="color:#fff">Safari</b><br>
+      2. Naciśnij przycisk <b style="color:#4fc3f7">Udostępnij</b> (kwadrat ze strzałką ↑)<br>
+      3. Wybierz <b style="color:#81c784">„Dodaj do ekranu głównego"</b><br>
+      4. Naciśnij <b style="color:#ffd600">Dodaj</b>
+    </p>
+    <button class="mbtn-save" style="width:100%;padding:11px;font-size:14px" onclick="document.getElementById('ios-modal').classList.remove('open')">OK, rozumiem</button>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="row">
+    <button class="tab-btn active" id="tab-keys"   onclick="switchTab('keys')">🔑 KLUCZE <span id="cnt-keys">(0)</span></button>
+    <button class="tab-btn"        id="tab-pilots" onclick="switchTab('pilots')">📡 PILOTY <span id="cnt-pilots">(0)</span></button>
+    <div style="flex:1"></div>
+    <button class="view-btn active" id="vbtn-map"  onclick="switchView('map')">🗺 Mapa</button>
+    <button class="view-btn"        id="vbtn-list" onclick="switchView('list')">📋 Lista</button>
+  </div>
+  <div class="row">
+    <button class="abtn abtn-blue" onclick="exportPdf()">📄 PDF</button>
+    <button class="abtn abtn-orange" onclick="refreshBackup()">🔄 Odśwież</button>
+    <div id="ddwrap">
+      <button class="abtn abtn-green" id="save-btn" onclick="toggleDD(event)" disabled>💾 Eksport ▾</button>
+      <div id="ddmenu">
+        <button onclick="exportPdf()">📄 Raport PDF</button>
+        <button onclick="exportXlsx()">📊 Baza XLSX</button>
+        <button onclick="exportJson()">💽 Kopia JSON</button>
+        <button onclick="document.getElementById('ddmenu').classList.remove('open');triggerPdf()" style="color:#4fc3f7;border-top:1px solid #333">📥 Załaduj dane z PDF</button>
+        <button onclick="document.getElementById('ddmenu').classList.remove('open');triggerJson()" style="color:#ffd600">📥 Wgraj kopię JSON</button>
+      </div>
+    </div>
+  </div>
+  <div id="statusbar">Ładowanie…</div>
+  <div id="progwrap"><div id="progbar"></div></div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+  <!-- MAPA -->
+  <div id="map"></div>
+
+  <!-- Wyszukiwarka na mapie - zwijana -->
+  <div id="map-search-ctrl">
+    <button id="ms-toggle" onclick="toggleMapSearch()">🔍 Szukaj</button>
+    <div id="ms-panel">
+      <input id="ms-input" type="text" placeholder="Szukaj obiektu na mapie..." oninput="mapSearch(this.value)" autocomplete="off"/>
+      <div id="ms-results"></div>
+    </div>
+  </div>
+
+  <!-- POPRAWIONE: "Dodaj nowy" zamiast "Dodaj ręcznie" -->
+  <button id="add-btn" onclick="toggleAddMode()">+ Dodaj nowy</button>
+  <button id="gps-btn" onclick="locateMe()" title="Moja pozycja GPS">📍</button>
+  <div id="place-bar" onclick="exitPlaceMode()">📍 Kliknij na mapie – <span id="place-name"></span> &nbsp;[✕ Anuluj]</div>
+
+  <!-- Przycisk DODAJ NA PULPIT na mapie -->
+  <button id="install-fab" onclick="installPwaFab()">📲 Dodaj na pulpit</button>
+
+  <!-- LISTA – wyszukiwarka wbudowana w zakładkę -->
+  <div id="list-view">
+    <div id="list-search-wrap">
+      <input id="list-search-bar" type="text" placeholder="🔍 Szukaj w bazie..." oninput="onListSearch(this.value)" autocomplete="off"/>
+    </div>
+    <div id="list-empty" style="display:none">Brak danych lub brak wyników wyszukiwania.</div>
+    <table id="data-table" style="display:none">
+      <thead>
+        <tr><th>NR</th><th>NAZWA / ADRES</th><th>GPS</th><th>AKCJE</th></tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL: DODAJ / EDYTUJ -->
+<div id="modal-edit" class="overlay">
+  <div class="mbox">
+    <h3 id="modal-title">📍 Dodaj nową pozycję</h3>
+    <div class="field"><label>NUMER OBIEKTU *</label><input id="m-nr" placeholder="np. 29"/></div>
+    <div class="field"><label>NAZWA</label><input id="m-name" placeholder="np. Firma XYZ"/></div>
+    <div class="field"><label>ULICA + NR DOMU / NR DZIAŁKI</label><input id="m-addr" placeholder="np. Paderewskiego 5 lub dz. 123/4"/></div>
+    <div class="field"><label>MIASTO (puste = Grudziądz)</label><input id="m-city" placeholder="Grudziądz"/></div>
+    <div id="mgps-info">Brak GPS</div>
+    <div class="mbtns">
+      <button class="mbtn-cancel" onclick="closeModal()">Anuluj</button>
+      <button class="mbtn-save"   onclick="savePin()">💾 Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: BRAK DANYCH -->
+<div id="nodata-overlay" class="overlay">
+  <div class="mbox" style="text-align:center">
+    <h3 style="font-size:18px;margin-bottom:10px">⚠️ Baza jest pusta</h3>
+    <p>Pierwsze uruchomienie lub pamięć wyczyszczona.<br>Co chcesz zrobić?</p>
+    <button class="big-btn" style="background:#1a1200;color:#ffd600;border:1px solid #ffd600" onclick="closeNoData();triggerJson()">♻️ Wgraj Kopię Bazy (JSON)</button>
+    <button class="big-btn" style="background:#0d2137;color:#4fc3f7;border:1px solid #4fc3f7" onclick="closeNoData();triggerPdf()">📄 Załaduj nową z PDF</button>
+    <button class="big-btn" style="background:transparent;color:#555;border:1px solid #222;font-size:12px" onclick="closeNoData()">Pomiń – zacznę od pustej bazy</button>
+  </div>
+</div>
+
+<input type="file" id="file-pdf"  accept=".pdf"  style="display:none" onchange="handlePdf(event)"/>
+<input type="file" id="file-json" accept=".json" style="display:none" onchange="handleJson(event)"/>
+
+<!-- SKRYPTY CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════════
+// KONFIGURACJA
+// ═══════════════════════════════════════════════════════════════
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const LS = {
+  keys:    'solidKeys_v5',
+  pilots:  'solidPilots_v5',
+  backup:  'solidBackup_v5'   // klucz auto-backupu metadanych
+};
+
+const BBOX    = { minLat:52.5, maxLat:54.0, minLng:17.3, maxLng:19.7 };
+const VIEWBOX = BBOX.minLng+','+BBOX.minLat+','+BBOX.maxLng+','+BBOX.maxLat;
+
+// ═══════════════════════════════════════════════════════════════
+// STAN APLIKACJI
+// ═══════════════════════════════════════════════════════════════
+let state       = { keys:[], pilots:[] };
+let tab         = 'keys';
+let currentView = 'map';
+let addMode     = false;
+let placeModeId = null;
+let editingId   = null;
+let pendingLL   = null;
+let searchQ     = '';        // globalne dla mapy (szukaj na mapie)
+let listSearchQ = '';        // lokalne dla zakładki Lista
+let map, clusterGroup, markerById = new Map(), userMarker = null;
+let deferredInstall = null;
+
+// ═══════════════════════════════════════════════════════════════
+// PWA – INSTALACJA
+// ═══════════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  // Ulepszony SW z limitowaniem cache
+  const swCode = `
+const CACHE_NAME = 'solidpatrol-v2';
+const MAX_ENTRIES = 60;
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    ).then(() => clients.claim())
+  );
+});
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  // Nie cachuj żądań Nominatim / API
+  if (e.request.url.includes('nominatim.openstreetmap.org')) return;
+  e.respondWith(
+    caches.open(CACHE_NAME).then(async cache => {
+      try {
+        const resp = await fetch(e.request);
+        if (resp.ok) {
+          // Ograniczenie rozmiaru cache
+          const keys = await cache.keys();
+          if (keys.length >= MAX_ENTRIES) await cache.delete(keys[0]);
+          cache.put(e.request, resp.clone());
+        }
+        return resp;
+      } catch {
+        return caches.match(e.request);
+      }
+    })
+  );
+});`;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+const isIos          = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandalone = ('standalone' in navigator) && navigator.standalone;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  document.getElementById('install-bar').classList.add('show');
+});
+
+function installPwa() {
+  if (!deferredInstall) { showIosInstall(); return; }
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(() => {
+    deferredInstall = null;
+    document.getElementById('install-bar').classList.remove('show');
+  });
+}
+
+function installPwaFab() {
+  if (deferredInstall) {
+    installPwa();
+  } else if (isIos) {
+    showIosInstall();
+  } else {
+    // Chrome: jeśli prompt już był użyty, pokaż instrukcję
+    alert('Aby dodać do pulpitu:\n1. Kliknij menu ⋮ przeglądarki\n2. Wybierz „Dodaj do ekranu głównego" lub „Zainstaluj aplikację"');
+  }
+}
+
+function showIosInstall() {
+  document.getElementById('ios-modal').classList.add('open');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s || '').replace(/[&<>"']/g,
+    m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
+function ts() {
+  return new Date().toLocaleString('pl-PL', {
+    day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+}
+function uid()      { return Date.now() + Math.random(); }
+function setStatus(msg, spin) {
+  document.getElementById('statusbar').innerHTML =
+    spin ? '<span style="color:#c62828">⏳</span> ' + msg : msg;
+}
+function showProg(p) {
+  document.getElementById('progwrap').style.display = 'block';
+  document.getElementById('progbar').style.width = Math.min(p, 100) + '%';
+}
+function hideProg() {
+  document.getElementById('progwrap').style.display = 'none';
+  document.getElementById('progbar').style.width = '0%';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PARSER ADRESU → miasto / ulica / numer
+// ═══════════════════════════════════════════════════════════════
+const CITIES_RE = /\b(turznice|wałdowo|gubiny|miłoleśna|brzeźna|węgrowo|grudziądz)\b/i;
+
+function normalizeAddr(raw) {
+  return (raw || '')
+    .replace(/\bGr\.\s*/gi, 'Grudziądz ')
+    .replace(/\bGr\s+(?=[A-ZŁŚŻŹĆĄĘ])/gi, 'Grudziądz ')
+    .trim();
+}
+
+function parseAddress(raw) {
+  const s    = normalizeAddr(raw);
+  let city   = 'Grudziądz';
+  let rest   = s;
+  const cm   = s.match(CITIES_RE);
+  if (cm) {
+    city = cm[1].charAt(0).toUpperCase() + cm[1].slice(1);
+    rest = s.replace(CITIES_RE, '').replace(/^[,\s]+|[,\s]+$/g, '');
+  }
+  let houseNr = '', street = rest;
+  // Obsłuż "działka" w pełnej formie (przed jakimkolwiek obcinaniem)
+  const dz = rest.match(/(?:dz\.?|działka|dzialka)\s*([\w\/\-]+)/i);
+  if (dz) {
+    houseNr = 'dz.' + dz[1];
+    street  = rest.replace(dz[0], '').trim();
+  } else {
+    const nm = rest.match(/\s+(\d+[\w\/\-]*)$/);
+    if (nm) {
+      houseNr = nm[1];
+      street  = rest.slice(0, rest.lastIndexOf(nm[0])).trim();
+    }
+  }
+  // Wyczyść pozostałości po skróceniu słowa "działka"
+  // (np. "dz.ia", "dz.i", "dz.ka" powstałe przez błędny split)
+  if (/^dz\.[a-z]{1,4}$/i.test(houseNr) && !/^\d/.test(houseNr.slice(3))) {
+    houseNr = 'dz.?';
+  }
+  return { city, street: street || rest, houseNr };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GEOKODOWANIE – inteligentne, wielostrategiczne
+// ═══════════════════════════════════════════════════════════════
+
+// Lista znanych wsi/miejscowości w okolicy Grudziądza
+const KNOWN_VILLAGES = new Set([
+  'turznice','wałdowo','gubiny','miłoleśna','brzeźna','węgrowo',
+  'trzebiełuch','świerkocin','piaski','ruda','gruta','grabowiec',
+  'skurgwy','rzepka','okonin','linarczyk','gać','gać warszawska',
+  'marusza','dolna grupa','łasin','świecie nad osą','mały rudnik',
+  'pieńki królewskie','pieńki krolewskie','biały bór','bialy bor'
+]);
+
+// Normalizuj nazwę ulicy do wyszukiwania (usuń skróty, ustandaryzuj)
+function normalizeStreet(s) {
+  return (s || '')
+    .replace(/\bul\.\s*/gi, '')
+    .replace(/\bal\.\s*/gi, 'aleja ')
+    .replace(/\bAl\.\s*/g,  'aleja ')
+    .replace(/\bos\.\s*/gi, 'osiedle ')
+    .replace(/\bpl\.\s*/gi, 'plac ')
+    .trim();
+}
+
+async function nominatimFetch(params) {
+  const base = 'https://nominatim.openstreetmap.org/search?format=json&countrycodes=pl&limit=5';
+  const hdr  = { 'Accept-Language': 'pl', 'User-Agent': 'SolidPatrol110/2.0' };
+  try {
+    const url  = base + '&' + new URLSearchParams(params).toString();
+    const resp = await fetch(url, { headers: hdr });
+    if (!resp.ok) return [];
+    return await resp.json();
+  } catch { return []; }
+}
+
+function pickBest(results, city) {
+  if (!results || !results.length) return null;
+  // Preferuj wyniki w bbox, potem blisko Grudziądza
+  const GDZ = { lat: 53.484, lng: 18.754 };
+  for (const r of results) {
+    const lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+    if (inBbox(lat, lng)) return { lat, lng };
+  }
+  // Jeśli nic w bbox, zwróć najbliższy wynik Grudziądzowi
+  let best = null, bestD = Infinity;
+  for (const r of results) {
+    const lat = parseFloat(r.lat), lng = parseFloat(r.lon);
+    const d = Math.pow(lat - GDZ.lat, 2) + Math.pow(lng - GDZ.lng, 2);
+    if (d < bestD) { bestD = d; best = { lat, lng }; }
+  }
+  return best;
+}
+
+async function geocodeOne(item) {
+  // Wyciągnij składowe adresu
+  const city    = (item.city    || 'Grudziądz').trim();
+  const street  = normalizeStreet(item.street  || '');
+  const houseNr = (item.houseNr || '').trim();
+  const isVillage = KNOWN_VILLAGES.has(city.toLowerCase());
+
+  // Wersje zapytań do Nominatim – od najdokładniejszych do ogólnych
+  const strategies = [];
+
+  // 1. Działka / ROD – szukaj po nazwie działkownicy lub ogrodu
+  if (/działk|rod|nogat|olszynka|tramwajarz|jalkowski/i.test(item.address + item.name)) {
+    // Dla działek szukaj po nazwie ROD + miasto
+    const rodName = (item.name || '').replace(/działk[ai]?\s*/i, '').trim();
+    if (rodName) {
+      strategies.push({ q: rodName + ', ' + city + ', Polska' });
+    }
+    // Też spróbuj ulicę jeśli jest
+    if (street) strategies.push({ q: street + ' ' + houseNr + ', ' + city + ', Polska' });
+    strategies.push({ q: city + ', Polska' });
+
+  // 2. Tylko miejscowość (wieś bez ulicy)
+  } else if (!street && isVillage) {
+    strategies.push({ q: city + ', woj. kujawsko-pomorskie, Polska' });
+    strategies.push({ q: city + ', Polska' });
+
+  // 3. Normalny adres ulica + numer
+  } else if (street) {
+    const cityCtx = isVillage
+      ? city + ', woj. kujawsko-pomorskie'
+      : city + ', woj. kujawsko-pomorskie';
+
+    // Strategia A: structured query (najlepsza)
+    if (houseNr && !/^dz/i.test(houseNr)) {
+      strategies.push({
+        street:  street + ' ' + houseNr,
+        city:    city,
+        county:  'kujawsko-pomorskie',
+        country: 'pl'
+      });
+    }
+    // Strategia B: structured bez numeru
+    strategies.push({
+      street:  street,
+      city:    city,
+      county:  'kujawsko-pomorskie',
+      country: 'pl'
+    });
+    // Strategia C: free-form z numerem
+    if (houseNr && !/^dz/i.test(houseNr)) {
+      strategies.push({ q: street + ' ' + houseNr + ', ' + cityCtx + ', Polska',
+        viewbox: VIEWBOX, bounded: 1 });
+    }
+    // Strategia D: free-form bez numeru
+    strategies.push({ q: street + ', ' + cityCtx + ', Polska',
+      viewbox: VIEWBOX, bounded: 1 });
+    // Strategia E: samo miasto (fallback)
+    strategies.push({ q: city + ', woj. kujawsko-pomorskie, Polska' });
+
+  // 4. Adres składa się tylko z miasta
+  } else {
+    strategies.push({ q: city + ', woj. kujawsko-pomorskie, Polska' });
+    strategies.push({ q: city + ', Polska' });
+  }
+
+  // Wykonaj strategie sekwencyjnie aż do skutku
+  for (const params of strategies) {
+    const results = await nominatimFetch(params);
+    const hit     = pickBest(results, city);
+    if (hit) return hit;
+    // Krótka przerwa między zapytaniami tej samej pozycji
+    await new Promise(r => setTimeout(r, 300));
+  }
+  return null;
+}
+
+function inBbox(lat, lng) {
+  return lat >= BBOX.minLat && lat <= BBOX.maxLat &&
+         lng >= BBOX.minLng && lng <= BBOX.maxLng;
+}
+
+async function geocodeAll(items, onProg) {
+  const results = [];
+  for (let i = 0; i < items.length; i++) {
+    onProg(i + 1, items.length, items[i].address);
+    showProg((i + 1) / items.length * 100);
+    results.push(await geocodeOne(items[i]));
+    // Nominatim wymaga max 1 req/s – strategie w geocodeOne dodają 300ms przerwy,
+    // więc tu czekamy tylko różnicę do 1100ms
+    if (i < items.length - 1) await new Promise(r => setTimeout(r, 800));
+  }
+  return results;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTO-BACKUP – zapis metadanych do localStorage przy każdej zmianie
+// ═══════════════════════════════════════════════════════════════
+function saveAutoBackup() {
+  try {
+    const backup = {
+      savedAt: new Date().toISOString(),
+      keys:    state.keys,
+      pilots:  state.pilots
+    };
+    localStorage.setItem(LS.backup, JSON.stringify(backup));
+  } catch(e) {
+    console.warn('Auto-backup failed:', e);
+  }
+}
+
+function loadAutoBackup() {
+  try {
+    const raw = localStorage.getItem(LS.backup);
+    if (!raw) return false;
+    const backup = JSON.parse(raw);
+    if (!Array.isArray(backup.keys) || !Array.isArray(backup.pilots)) return false;
+    state.keys   = backup.keys;
+    state.pilots = backup.pilots;
+    // Synchronizuj też główne klucze
+    localStorage.setItem(LS.keys,   JSON.stringify(state.keys));
+    localStorage.setItem(LS.pilots, JSON.stringify(state.pilots));
+    return backup.savedAt;
+  } catch(e) {
+    return false;
+  }
+}
+
+// Przycisk ODŚWIEŻ – ładuje auto-backup i odświeża widok
+function refreshBackup() {
+  const savedAt = loadAutoBackup();
+  if (savedAt) {
+    const dt = new Date(savedAt).toLocaleString('pl-PL');
+    setStatus('✓ Odświeżono z kopii z: ' + dt);
+    syncMarkers();
+    renderList();
+    updateUI();
+    if (currentView === 'map') setTimeout(fitMap, 200);
+  } else {
+    // Jeśli brak auto-backupu, zaproponuj wczytanie pliku JSON
+    if (confirm('Brak zapisanej kopii. Czy chcesz wczytać plik JSON?')) {
+      triggerJson();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Wczytaj dane – najpierw główne klucze, potem auto-backup jako fallback
+  try {
+    const k = localStorage.getItem(LS.keys);
+    const p = localStorage.getItem(LS.pilots);
+    if (k) state.keys   = JSON.parse(k);
+    if (p) state.pilots = JSON.parse(p);
+  } catch(e) {}
+
+  // Jeśli główne puste – spróbuj auto-backup
+  if (!state.keys.length && !state.pilots.length) {
+    loadAutoBackup();
+  }
+
+  initMap();
+
+  // iOS: pokaż baner instalacji
+  if (isIos && !isInStandalone) {
+    document.getElementById('install-bar').classList.add('show');
+  }
+
+  if (!state.keys.length && !state.pilots.length) {
+    document.getElementById('nodata-overlay').classList.add('open');
+    setStatus('Baza pusta – wczytaj dane.');
+  } else {
+    setStatus('✓ Baza wczytana — Klucze: ' + state.keys.length + ', Piloty: ' + state.pilots.length);
+  }
+  switchTab('keys');
+});
+
+// ═══════════════════════════════════════════════════════════════
+// MAPA
+// ═══════════════════════════════════════════════════════════════
+function initMap() {
+  map = L.map('map', { zoomControl: true }).setView([53.4837, 18.7536], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  }).addTo(map);
+
+  map.on('click', e => {
+    if (placeModeId !== null) {
+      assignGps(placeModeId, e.latlng.lat, e.latlng.lng);
+      exitPlaceMode();
+      return;
+    }
+    if (addMode) {
+      pendingLL = e.latlng;
+      openModal(null, e.latlng);
+      toggleAddMode(false);
+    }
+  });
+
+  map.on('locationfound', e => {
+    setStatus('✓ GPS: ' + e.latlng.lat.toFixed(5) + ', ' + e.latlng.lng.toFixed(5));
+    if (userMarker) userMarker.setLatLng(e.latlng);
+    else userMarker = L.circleMarker(e.latlng, {
+      radius:9, fillColor:'#2196F3', color:'#fff', weight:2, fillOpacity:.95
+    }).addTo(map).bindPopup('<b>📍 Twoja pozycja</b>');
+  });
+  map.on('locationerror', e => setStatus('❌ GPS: ' + e.message));
+}
+
+// ─── Tryb ustawiania pinezki ───────────────────────────────────
+function enterPlaceMode(id) {
+  placeModeId = id;
+  const item = state[tab].find(i => i.id === id);
+  document.getElementById('place-name').textContent =
+    item ? '#' + item.nr + ' ' + (item.name || '') : '';
+  document.getElementById('place-bar').style.display = 'block';
+  document.getElementById('add-btn').style.display   = 'none';
+  map.getContainer().style.cursor = 'crosshair';
+  if (currentView !== 'map') switchView('map');
+}
+function exitPlaceMode() {
+  placeModeId = null;
+  document.getElementById('place-bar').style.display = 'none';
+  document.getElementById('add-btn').style.display   = 'block';
+  map.getContainer().style.cursor = '';
+}
+function assignGps(id, lat, lng) {
+  const idx = state[tab].findIndex(i => i.id === id);
+  if (idx < 0) return;
+  state[tab][idx].lat       = lat;
+  state[tab][idx].lng       = lng;
+  state[tab][idx].updatedAt = ts();
+  saveToMem();
+  syncMarkers();
+  if (currentView === 'list') renderList();
+  setStatus('✓ Pinezka ustawiona dla #' + state[tab][idx].nr);
+}
+
+// ─── Wyszukiwarka na mapie (zwijana) ──────────────────────────
+function toggleMapSearch() {
+  const panel = document.getElementById('ms-panel');
+  const btn   = document.getElementById('ms-toggle');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  if (open) setTimeout(() => document.getElementById('ms-input').focus(), 80);
+  else {
+    document.getElementById('ms-input').value = '';
+    document.getElementById('ms-results').style.display = 'none';
+  }
+}
+function mapSearch(q) {
+  const div = document.getElementById('ms-results');
+  if (!q.trim()) { div.style.display = 'none'; return; }
+  const sq   = q.toLowerCase();
+  const hits = state[tab].filter(it => it.lat && (
+    (it.nr || '').toLowerCase().includes(sq) ||
+    (it.name || '').toLowerCase().includes(sq) ||
+    (it.address || '').toLowerCase().includes(sq)
+  )).slice(0, 8);
+
+  div.innerHTML = hits.length
+    ? hits.map(it => `
+        <div class="msri" onclick="focusMarker(${it.id})">
+          <span class="msri-label">${tab === 'keys' ? 'KLUCZ' : 'PILOT'} #${esc(it.nr)}</span>
+          <span class="msri-name">${esc(it.name)}</span>
+          <span class="msri-addr">${esc(it.address)}</span>
+        </div>`).join('')
+    : '<div class="msri"><span class="msri-addr">Brak wyników</span></div>';
+  div.style.display = 'block';
+}
+function focusMarker(id) {
+  document.getElementById('ms-results').style.display = 'none';
+  document.getElementById('ms-input').value = '';
+  document.getElementById('ms-panel').classList.remove('open');
+  document.getElementById('ms-toggle').classList.remove('open');
+  const m = markerById.get(id);
+  if (!m) return;
+  clusterGroup.zoomToShowLayer(m, () => m.openPopup());
+}
+
+// ─── Synchronizacja pinezek (z diffingiem) ────────────────────
+function syncMarkers() {
+  if (clusterGroup) map.removeLayer(clusterGroup);
+  clusterGroup = L.markerClusterGroup({
+    disableClusteringAtZoom: 16,
+    maxClusterRadius: 50,
+    iconCreateFunction: function(c) {
+      return L.divIcon({
+        html: '<div style="background:#c62828;color:#fff;border-radius:50%;width:38px;height:38px;'
+          + 'display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;'
+          + 'border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5)">'
+          + c.getChildCount() + '</div>',
+        iconSize: [38, 38], className: ''
+      });
+    }
+  });
+  markerById = new Map();
+
+  const sq      = searchQ.toLowerCase();
+  const visible = sq
+    ? state[tab].filter(it =>
+        (it.nr      || '').toLowerCase().includes(sq) ||
+        (it.name    || '').toLowerCase().includes(sq) ||
+        (it.address || '').toLowerCase().includes(sq))
+    : state[tab];
+
+  for (const item of visible) {
+    if (!item.lat || !item.lng) continue;
+    const icon = L.divIcon({
+      html: '<div style="background:#c62828;color:#fff;border-radius:50% 50% 50% 0;'
+        + 'width:36px;height:36px;display:flex;align-items:center;justify-content:center;'
+        + 'font-size:11px;font-weight:900;border:2px solid #fff;'
+        + 'box-shadow:0 3px 10px rgba(0,0,0,.6);transform:rotate(-45deg);'
+        + "font-family:'Courier New',monospace\">"
+        + '<span style="transform:rotate(45deg)">' + esc(item.nr) + '</span></div>',
+      iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -38], className: ''
+    });
+    const m = L.marker([item.lat, item.lng], { icon: icon, draggable: true });
+    m.bindPopup(buildPopup(item), { maxWidth: 300 });
+    m.on('dragend', ev => {
+      const ll  = ev.target.getLatLng();
+      const idx = state[tab].findIndex(i => i.id === item.id);
+      if (idx > -1) {
+        state[tab][idx].lat       = ll.lat;
+        state[tab][idx].lng       = ll.lng;
+        state[tab][idx].updatedAt = ts();
+        m.getPopup().setContent(buildPopup(state[tab][idx]));
+        saveToMem();
+        if (currentView === 'list') renderList();
+      }
+    });
+    markerById.set(item.id, m);
+    clusterGroup.addLayer(m);
+  }
+  map.addLayer(clusterGroup);
+}
+
+function buildPopup(item) {
+  const p   = parseAddress(item.address);
+  const nav = 'https://www.google.com/maps/dir/?api=1&destination=' + item.lat + ',' + item.lng;
+  return '<div class="pop-head">'
+    + '<span class="pop-badge">#' + esc(item.nr) + '</span>'
+    + '<span class="pop-title">' + esc(item.name) + '</span></div>'
+    + '<div class="pop-body">'
+    + '<div class="pop-addr">'
+    + (p.street ? '🏠 ' + esc(p.street) + ' ' + esc(p.houseNr) : '📍 ' + esc(item.address))
+    + '</div>'
+    + '<div class="pop-city">📌 ' + esc(p.city) + '</div>'
+    + '<div class="pop-gps">' + (item.lat ? item.lat.toFixed(6) + ', ' + item.lng.toFixed(6) : '') + '</div>'
+    + (item.updatedAt ? '<div class="pop-ts">✏️ ' + esc(item.updatedAt) + '</div>' : '')
+    + '<a href="' + nav + '" target="_blank" class="pop-nav">🧭 Wyznacz Trasę Google Maps</a>'
+    + '<div class="pop-actions">'
+    + '<button class="pop-edit" onclick="popEdit(' + item.id + ')">✏️ Edytuj</button>'
+    + '<button class="pop-del"  onclick="popDel('  + item.id + ')">🗑️ Usuń</button>'
+    + '</div></div>';
+}
+
+function popEdit(id) { map.closePopup(); openModal(id); }
+function popDel(id) {
+  if (!confirm('Usunąć ten obiekt z bazy?')) return;
+  state[tab] = state[tab].filter(i => i.id !== id);
+  saveToMem(); syncMarkers(); renderList();
+}
+
+function fitMap() {
+  if (clusterGroup && clusterGroup.getLayers().length > 0)
+    map.fitBounds(clusterGroup.getBounds(), { padding: [50, 50], maxZoom: 16 });
+}
+function locateMe() {
+  setStatus('⏳ Szukam GPS…', true);
+  map.locate({ setView: true, maxZoom: 16 });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ZAKŁADKI / WIDOKI
+// ═══════════════════════════════════════════════════════════════
+function switchTab(t) {
+  tab = t;
+  searchQ = '';       // reset filtra mapy przy zmianie zakładki
+  listSearchQ = '';
+  const bar = document.getElementById('list-search-bar');
+  if (bar) bar.value = '';
+  document.getElementById('tab-keys').classList.toggle('active',   t === 'keys');
+  document.getElementById('tab-pilots').classList.toggle('active', t === 'pilots');
+  syncMarkers();
+  renderList();
+  updateUI();
+  if (currentView === 'map') setTimeout(fitMap, 200);
+}
+
+function switchView(v) {
+  currentView = v;
+  document.getElementById('vbtn-map').classList.toggle('active',  v === 'map');
+  document.getElementById('vbtn-list').classList.toggle('active', v === 'list');
+  document.getElementById('map').style.display             = v === 'map'  ? 'block' : 'none';
+  document.getElementById('list-view').style.display       = v === 'list' ? 'flex'  : 'none';
+  document.getElementById('add-btn').style.display         = v === 'map'  ? 'block' : 'none';
+  document.getElementById('gps-btn').style.display         = v === 'map'  ? 'flex'  : 'none';
+  document.getElementById('map-search-ctrl').style.display = v === 'map'  ? 'block' : 'none';
+  document.getElementById('install-fab').style.display     = v === 'map' ? 'block' : 'none';
+  if (v === 'map') { setTimeout(() => { map.invalidateSize(); fitMap(); }, 150); }
+  if (v === 'list') renderList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WYSZUKIWANIE – debounced
+// ═══════════════════════════════════════════════════════════════
+let _listSearchTimer = null;
+
+// Wyszukiwarka w zakładce Lista (niezależna od mapy)
+function onListSearch(q) {
+  clearTimeout(_listSearchTimer);
+  _listSearchTimer = setTimeout(() => {
+    listSearchQ = q.trim();
+    renderList();
+    if (listSearchQ) {
+      const sq   = listSearchQ.toLowerCase();
+      const hits = state[tab].filter(it =>
+        (it.nr || '').toLowerCase().includes(sq) ||
+        (it.name || '').toLowerCase().includes(sq) ||
+        (it.address || '').toLowerCase().includes(sq));
+      setStatus('🔍 Znaleziono: ' + hits.length + ' wyników dla "' + listSearchQ + '"');
+    } else {
+      setStatus('✓ Baza: Klucze: ' + state.keys.length + ', Piloty: ' + state.pilots.length);
+    }
+  }, 120);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LISTA
+// ═══════════════════════════════════════════════════════════════
+function renderList() {
+  const q    = listSearchQ.toLowerCase();
+  const rows = q
+    ? state[tab].filter(it =>
+        (it.nr      || '').toLowerCase().includes(q) ||
+        (it.name    || '').toLowerCase().includes(q) ||
+        (it.address || '').toLowerCase().includes(q))
+    : state[tab];
+
+  const tbl = document.getElementById('data-table');
+  const emp = document.getElementById('list-empty');
+  if (!rows.length) { tbl.style.display = 'none'; emp.style.display = 'block'; return; }
+  tbl.style.display = 'table'; emp.style.display = 'none';
+
+  document.getElementById('tbody').innerHTML = rows.map(item => {
+    const ok = !!(item.lat && item.lng);
+    return '<tr>'
+      + '<td class="' + (ok ? 'td-nr-ok' : 'td-nr-err') + '">#' + esc(item.nr) + '</td>'
+      + '<td><div class="td-name">' + esc(item.name) + '</div>'
+      + '<div class="td-addr">' + esc(item.address) + '</div></td>'
+      + '<td class="' + (ok ? 'td-ok' : 'td-err') + '">' + (ok ? '✓ GPS' : '✗ BRAK') + '</td>'
+      + '<td>'
+      + (!ok ? '<button class="btn-sm btn-pin" onclick="enterPlaceMode(' + item.id + ')">📍 Ustaw</button>' : '')
+      + '<button class="btn-sm" onclick="openModal(' + item.id + ')">✏️</button>'
+      + '<button class="btn-sm btn-del" onclick="delItem(' + item.id + ')">🗑️</button>'
+      + '</td></tr>';
+  }).join('');
+}
+
+function delItem(id) {
+  if (!confirm('Usunąć?')) return;
+  state[tab] = state[tab].filter(i => i.id !== id);
+  saveToMem(); syncMarkers(); renderList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODAL DODAJ / EDYTUJ
+// ═══════════════════════════════════════════════════════════════
+function toggleAddMode(force) {
+  addMode = force !== undefined ? force : !addMode;
+  const btn = document.getElementById('add-btn');
+  btn.textContent = addMode ? '✕ Anuluj' : '+ Dodaj nowy';
+  btn.classList.toggle('active', addMode);
+}
+
+function openModal(id, latlng) {
+  editingId = id || null;
+  document.getElementById('modal-title').textContent =
+    id ? '✏️ Edytuj pozycję' : '📍 Dodaj nową pozycję';
+
+  if (id) {
+    const item = state[tab].find(i => i.id === id);
+    if (!item) return;
+    pendingLL = { lat: item.lat, lng: item.lng };
+    const p   = parseAddress(item.address);
+    document.getElementById('m-nr').value   = item.nr || '';
+    document.getElementById('m-name').value = item.name || '';
+    document.getElementById('m-addr').value = (p.street + (p.houseNr ? ' ' + p.houseNr : '')) || item.address || '';
+    document.getElementById('m-city').value = p.city || 'Grudziądz';
+  } else {
+    pendingLL = latlng || null;
+    document.getElementById('m-nr').value   = '';
+    document.getElementById('m-name').value = '';
+    document.getElementById('m-addr').value = '';
+    document.getElementById('m-city').value = 'Grudziądz';
+  }
+
+  document.getElementById('mgps-info').textContent =
+    (pendingLL && pendingLL.lat)
+      ? 'GPS: ' + pendingLL.lat.toFixed(5) + ', ' + pendingLL.lng.toFixed(5)
+      : '⚠ Brak GPS – obiekt trafi tylko na listę';
+
+  document.getElementById('modal-edit').classList.add('open');
+  setTimeout(() => document.getElementById('m-nr').focus(), 120);
+}
+
+function closeModal()  { document.getElementById('modal-edit').classList.remove('open'); }
+function closeNoData() { document.getElementById('nodata-overlay').classList.remove('open'); }
+
+function savePin() {
+  const nr = document.getElementById('m-nr').value.trim();
+  if (!nr) { alert('Numer obiektu jest wymagany!'); return; }
+  const name     = document.getElementById('m-name').value.trim();
+  const addr     = document.getElementById('m-addr').value.trim();
+  const city     = document.getElementById('m-city').value.trim() || 'Grudziądz';
+  const fullAddr = addr + (city && !addr.toLowerCase().includes(city.toLowerCase()) ? ', ' + city : '');
+  const now = ts();
+
+  if (editingId) {
+    const idx = state[tab].findIndex(i => i.id === editingId);
+    if (idx > -1) state[tab][idx] = { ...state[tab][idx], nr, name, address: fullAddr, updatedAt: now };
+  } else {
+    state[tab].push({
+      id: uid(), nr, name, address: fullAddr,
+      lat: pendingLL ? pendingLL.lat : null,
+      lng: pendingLL ? pendingLL.lng : null,
+      createdAt: now, updatedAt: now
+    });
+  }
+  closeModal();
+  saveToMem();
+  syncMarkers();
+  renderList();
+  updateUI();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WCZYTAJ PDF – obsługuje OBA formaty:
+//   FORMAT A (oryginalny): Nr | Miasto | Ulica | NrDomu | Nazwa
+//   FORMAT B (eksport SP):  NR | NAZWA | ULICA | NR | MIASTO | GPS | DATA
+// ═══════════════════════════════════════════════════════════════
+function triggerPdf() { document.getElementById('file-pdf').click(); }
+
+async function getPdfPageLines(page) {
+  const ct = await page.getTextContent();
+  const map = new Map();
+  for (const item of ct.items) {
+    const y = Math.round(item.transform[5] / 4) * 4;
+    const x = item.transform[4];
+    const t = item.str.trim();
+    if (!t) continue;
+    if (!map.has(y)) map.set(y, []);
+    map.get(y).push({ x, text: t });
+  }
+  return Array.from(map.entries())
+    .sort((a, b) => b[0] - a[0])
+    .map(([y, items]) => ({ y, items: items.sort((a, b) => a.x - b.x) }));
+}
+
+async function handlePdf(e) {
+  const file = e.target.files[0]; if (!file) return;
+  e.target.value = '';
+  setStatus('⏳ Wczytuję PDF…', true); showProg(0);
+  try {
+    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    const allLines = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      allLines.push(...await getPdfPageLines(await pdf.getPage(i)));
+    }
+
+    // Wykryj format: B = eksport SP (ma kolumny GPS i DATA)
+    let pdfFormat = 'A';
+    let colXMap   = null;
+    for (const line of allLines) {
+      const ts2 = line.items.map(i => i.text.toUpperCase());
+      const joined = ts2.join(' ');
+      if (ts2.includes('GPS') && ts2.includes('DATA')) {
+        pdfFormat = 'B';
+        colXMap   = buildColMapFromLine(line.items);
+        break;
+      }
+      if (ts2.some(t=>t==='MIASTO') && ts2.some(t=>t==='ULICA')) {
+        pdfFormat = 'A';
+        colXMap   = buildColMapFromLine(line.items);
+        break;
+      }
+    }
+
+    const parsed = pdfFormat === 'B'
+      ? parsePdfExport(allLines, colXMap)
+      : parsePdfOriginal(allLines, colXMap);
+
+    if (!parsed.length) {
+      setStatus('❌ Nie znaleziono danych w PDF (format: '+pdfFormat+').'); hideProg(); return;
+    }
+
+    const needGeo = parsed.filter(p => p.lat == null);
+    const hasGps  = parsed.length - needGeo.length;
+
+    if (needGeo.length > 0) {
+      setStatus('⏳ '+parsed.length+' poz., '+hasGps+' z GPS. Geokuduję '+needGeo.length+'…', true);
+      const coords = await geocodeAll(needGeo, (done, total, addr) => {
+        setStatus('⏳ Geokuduję '+done+'/'+needGeo.length+': '+addr, true);
+      });
+      let ci = 0;
+      for (const item of parsed) {
+        if (item.lat == null) {
+          if (coords[ci]) { item.lat = coords[ci].lat; item.lng = coords[ci].lng; }
+          ci++;
+        }
+      }
+    }
+
+    state[tab] = parsed;
+    saveToMem(); closeNoData(); syncMarkers(); renderList(); updateUI(); hideProg();
+    const ok  = state[tab].filter(x => x.lat != null).length;
+    const bad = state[tab].length - ok;
+    setStatus('✓ Załadowano '+state[tab].length+' poz. — '+ok+' z GPS'
+      +(bad ? ', '+bad+' bez GPS (kliknij 📍 w liście)' : ' ✓'));
+    setTimeout(fitMap, 400);
+  } catch(err) { console.error(err); setStatus('❌ Błąd PDF: '+err.message); hideProg(); }
+}
+
+function buildColMapFromLine(items) {
+  const m = {};
+  items.forEach((it, i) => { m[i] = it.x; });
+  return m;
+}
+
+function assignToCol(x, colXMap) {
+  let best = null, bestD = Infinity;
+  for (const [k, cx] of Object.entries(colXMap)) {
+    const d = Math.abs(x - Number(cx));
+    if (d < bestD) { bestD = d; best = k; }
+  }
+  return best;
+}
+
+// FORMAT A: Nr Miasto Ulica NrDomu Nazwa [Agencja]
+function parsePdfOriginal(lines, colXMap) {
+  const items = [];
+  let activeCol = colXMap;
+  for (const line of lines) {
+    const sorted = line.items;
+    const toks   = sorted.map(i => i.text).filter(Boolean);
+    if (!toks.length) continue;
+    const joined = toks.join(' ');
+    // Nagłówek kolumn – odśwież pozycje (każda strona ma go ponownie)
+    if (/\b(Miasto|Ulica|Nazwa)\b/i.test(joined) && /\b(Nr|Pilot)\b/i.test(joined)) {
+      activeCol = buildColMapFromLine(sorted);
+      continue;
+    }
+    if (/SOLID PATROL|REJESTR|^NR\s+NAZWA|Str\.\s*\d+/i.test(joined)) continue;
+    if (!/^\d+$/.test(toks[0])) continue;
+    const nr = toks[0];
+
+    let city='', street='', houseNr='', name='';
+    if (activeCol && Object.keys(activeCol).length >= 3) {
+      const byCol = {};
+      for (const it of sorted) {
+        const c = assignToCol(it.x, activeCol);
+        if (c !== null) byCol[c] = (byCol[c]?byCol[c]+' ':'')+it.text;
+      }
+      const vals = Object.keys(byCol).map(Number).sort((a,b)=>a-b)
+        .map(k=>(byCol[k]||'').trim());
+      city    = vals[1]||'';
+      street  = vals[2]||'';
+      houseNr = vals[3]||'';
+      name    = vals.slice(4).join(' ');
+      // Jeśli houseNr to słowo (nie liczba) → to jest nazwa, brak nr domu
+      if (houseNr && /^[A-Za-zĄąĆćĘęŁłŃńÓóŚśŹźŻż]/.test(houseNr) && !/\d/.test(houseNr)) {
+        name = houseNr+(name?' '+name:''); houseNr='';
+      }
+    } else {
+      city=toks[1]||''; street=toks[2]||'';
+      houseNr=/^\d/.test(toks[3]||'')?toks[3]:'';
+      name=toks.slice(houseNr?4:3).join(' ');
+    }
+    city=city.trim(); street=street.trim(); houseNr=houseNr.trim(); name=name.trim();
+    const b = buildAddress(street, houseNr, city);
+    items.push({ id:uid(), nr, name, address:b.address,
+      city:b.city, street:b.street, houseNr:b.houseNr,
+      lat:null, lng:null, createdAt:ts() });
+  }
+  return items;
+}
+
+// FORMAT B: NR NAZWA ULICA NR MIASTO GPS DATA (eksport Solid Patrol)
+function parsePdfExport(lines, colXMap) {
+  const items = [];
+  let activeCol = colXMap;
+  for (const line of lines) {
+    const sorted = line.items;
+    const toks   = sorted.map(i => i.text).filter(Boolean);
+    if (!toks.length) continue;
+    const joined = toks.join(' ');
+    if (/SOLID PATROL|REJESTR|Str\.\s*\d+/i.test(joined)) continue;
+    if (/\bNAZWA\b.*\bULICA\b/i.test(joined)||/\bGPS\b.*\bDATA\b/i.test(joined)) {
+      activeCol = buildColMapFromLine(sorted); continue;
+    }
+    if (!/^\d+$/.test(toks[0])) continue;
+    const nr = toks[0];
+
+    let name='', street='', houseNr='', city='', gpsStr='', dateStr='';
+    if (activeCol && Object.keys(activeCol).length >= 4) {
+      const byCol = {};
+      for (const it of sorted) {
+        const c = assignToCol(it.x, activeCol);
+        if (c !== null) byCol[c] = (byCol[c]?byCol[c]+' ':'')+it.text;
+      }
+      const vals = Object.keys(byCol).map(Number).sort((a,b)=>a-b)
+        .map(k=>(byCol[k]||'').trim());
+      // [0]=NR [1]=NAZWA [2]=ULICA [3]=NR_D [4]=MIASTO [5]=GPS [6]=DATA
+      name    = vals[1]||'';
+      street  = vals[2]||'';
+      houseNr = vals[3]||'';
+      city    = vals[4]||'Grudziadz';
+      gpsStr  = vals[5]||'';
+      dateStr = vals[6]||'';
+    } else {
+      name=toks[1]||''; street=toks[2]||''; houseNr=toks[3]||'';
+      city=toks[4]||'Grudziadz'; gpsStr=toks[5]||''; dateStr=toks[6]||'';
+    }
+
+    // Parsuj GPS
+    let lat=null, lng=null;
+    if (gpsStr && gpsStr!=='BRAK') {
+      const m = gpsStr.match(/([\d.]+)[,\s]+([\d.]+)/);
+      if (m) { lat=parseFloat(m[1]); lng=parseFloat(m[2]); }
+    }
+    // Przywróć polskie znaki z "Grudziadz" → "Grudziądz" itp.
+    city = restorePl(city); name = restorePl(name);
+    street = restorePl(street);
+    const b = buildAddress(street, houseNr, city);
+    items.push({ id:uid(), nr, name, address:b.address,
+      city:b.city, street:b.street, houseNr:b.houseNr,
+      lat, lng, createdAt:dateStr||ts(), updatedAt:dateStr||undefined });
+  }
+  return items;
+}
+
+// Przywróć polskie znaki (odwrotność san()) dla najczęstszych przypadków
+function restorePl(s) {
+  return (s||'')
+    .replace(/Grudziadz/g,'Grudziądz')
+    .replace(/grudziadz/g,'grudziądz')
+    .replace(/Lasin/g,'Łasin').replace(/lasin/g,'łasin')
+    .replace(/Wegrowo/g,'Węgrowo').replace(/wegrowo/g,'węgrowo')
+    .replace(/Swiecie/g,'Świecie').replace(/swiecie/g,'świecie')
+    .replace(/Pienki/g,'Pieńki').replace(/pienki/g,'pieńki')
+    .replace(/Milolesna/g,'Miłoleśna')
+    .replace(/Trzebieluch/g,'Trzebiełuch')
+    .replace(/Swierkocin/g,'Świerkocin')
+    .replace(/Bialy\s+bor/gi,'Biały Bór');
+}
+
+// Zbuduj pełny adres z komponentów
+function buildAddress(street, houseNr, city) {
+  city    = restorePl((city||'Grudziądz').trim());
+  street  = (street||'').trim();
+  houseNr = (houseNr||'').trim();
+  if (/^(dz[iałk]|Nogat|rod\b)/i.test(street)||/^dz[iałk]/i.test(houseNr)) {
+    const dzNr = /\d/.test(houseNr)?houseNr:
+      (houseNr||street.replace(/^(dz\S*|rod)\s*/i,''));
+    return { address:city+(dzNr?', dz. '+dzNr:''), city, street, houseNr };
+  }
+  const address = street
+    ? (street+(houseNr?' '+houseNr:'')+', '+city)
+    : (city!=='Grudziądz'?city:'Grudziądz');
+  return { address, city, street, houseNr };
+}
+// ═══════════════════════════════════════════════════════════════
+// BACKUP JSON – wczytywanie i eksport
+// ═══════════════════════════════════════════════════════════════
+function triggerJson() { document.getElementById('file-json').click(); }
+
+function exportJson() {
+  document.getElementById('ddmenu').classList.remove('open');
+  const payload = { ...state, savedAt: new Date().toISOString(), version: 5 };
+  const blob    = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a       = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(blob),
+    download: 'solid_backup_' + Date.now() + '.json'
+  });
+  a.click(); URL.revokeObjectURL(a.href);
+  setStatus('✓ Pobrano kopię JSON (' + state.keys.length + ' kluczy, ' + state.pilots.length + ' pilotów)');
+}
+
+function handleJson(e) {
+  const file = e.target.files[0]; if (!file) return;
+  e.target.value = '';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (Array.isArray(data.keys) && Array.isArray(data.pilots)) {
+        state = { keys: data.keys, pilots: data.pilots };
+        saveToMem();
+        closeNoData();
+        switchTab('keys');
+        setStatus('✓ Przywrócono: Klucze: ' + state.keys.length + ', Piloty: ' + state.pilots.length);
+        setTimeout(fitMap, 400);
+      } else {
+        alert('Nieprawidłowy plik kopii zapasowej!');
+      }
+    } catch(err) { alert('Błąd JSON: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EKSPORT PDF – kolumny: NR | NAZWA | ULICA | NR | MIASTO | GPS | DATA
+// ═══════════════════════════════════════════════════════════════
+function san(s) {
+  return String(s || '')
+    .replace(/ą/g,'a').replace(/Ą/g,'A').replace(/ć/g,'c').replace(/Ć/g,'C')
+    .replace(/ę/g,'e').replace(/Ę/g,'E').replace(/ł/g,'l').replace(/Ł/g,'L')
+    .replace(/ń/g,'n').replace(/Ń/g,'N').replace(/ó/g,'o').replace(/Ó/g,'O')
+    .replace(/ś/g,'s').replace(/Ś/g,'S').replace(/ź/g,'z').replace(/Ź/g,'Z')
+    .replace(/ż/g,'z').replace(/Ż/g,'Z').replace(/[^\x20-\x7E]/g,'?');
+}
+
+async function exportPdf() {
+  document.getElementById('ddmenu').classList.remove('open');
+  const data = state[tab];
+  if (!data.length) { setStatus('Brak danych do eksportu.'); return; }
+
+  if (typeof PDFLib === 'undefined') {
+    setStatus('❌ Biblioteka pdf-lib nie jest załadowana. Sprawdź połączenie z internetem.');
+    return;
+  }
+
+  setStatus('⏳ Generuję PDF…', true);
+  try {
+    const { PDFDocument, rgb, StandardFonts } = PDFLib;
+    const doc  = await PDFDocument.create();
+    const font = await doc.embedFont(StandardFonts.Helvetica);
+    const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+    const [W, H] = [842, 595]; // A4 poziomo dla więcej miejsca
+    const M = 25;
+    const RED  = rgb(0.78, 0.16, 0.16);
+    const GRAY = rgb(0.5,  0.5,  0.5);
+    const BLK  = rgb(0.08, 0.08, 0.08);
+    const RED2 = rgb(0.9,  0.2,  0.2);
+
+    // Kolumny: NR | NAZWA | ULICA | NR_D | MIASTO | GPS | DATA
+    //  x:       0   30     165    305    345      430   575
+    const cols  = [0,  30,  165, 305, 345, 430, 575];
+    const heads = ['NR','NAZWA','ULICA','NR','MIASTO','GPS','DATA'];
+    const maxW  = [28, 133, 138, 38,  83,  143,  150];
+
+    let page = doc.addPage([W, H]), y = H - 35;
+
+    const drawHeader = (pg) => {
+      pg.drawRectangle({ x:0, y:H-52, width:W, height:52, color:RED });
+      pg.drawText(san('SOLID PATROL 110 – GRUDZIĄDZ'),
+        { x:M, y:H-22, font:bold, size:14, color:rgb(1,1,1) });
+      pg.drawText(
+        san((tab==='keys'?'REJESTR KLUCZY':'REJESTR PILOTOW')
+          +' | '+new Date().toLocaleDateString('pl-PL')
+          +' | Pozycji: '+data.length),
+        { x:M, y:H-38, font:font, size:9, color:rgb(1,.9,.9) });
+      // Nagłówki kolumn
+      pg.drawRectangle({ x:M-2, y:H-68, width:W-2*M+4, height:14, color:rgb(.15,.15,.25) });
+      heads.forEach((h,i) =>
+        pg.drawText(h, { x:M+cols[i], y:H-66, font:bold, size:7.5, color:rgb(1,1,1) }));
+    };
+
+    const newPage = () => {
+      page = doc.addPage([W, H]);
+      drawHeader(page);
+      y = H - 82;
+    };
+
+    drawHeader(page);
+    y = H - 82;
+
+    // Pomocnik: obetnij tekst do szerokości
+    const clip = (s, maxPx, fnt, sz) => {
+      let out = s;
+      while (out.length > 1) {
+        try {
+          const w = fnt.widthOfTextAtSize(out, sz);
+          if (w <= maxPx) break;
+        } catch { break; }
+        out = out.slice(0, -1);
+      }
+      return out;
+    };
+
+    let rowIdx = 0;
+    for (const item of data) {
+      if (y < 30) newPage();
+
+      // Pobierz pola bezpośrednio lub parsuj
+      let street  = item.street  || '';
+      let houseNr = item.houseNr || '';
+      let city    = item.city    || '';
+      if (!street && !city) {
+        const p = parseAddress(item.address);
+        street  = p.street; houseNr = p.houseNr; city = p.city;
+      }
+      city = city || 'Grudziądz';
+
+      const hasGps = item.lat != null && item.lng != null;
+      const gpsStr = hasGps
+        ? item.lat.toFixed(4) + ',' + item.lng.toFixed(4)
+        : 'BRAK';
+      const dateStr = (item.updatedAt || item.createdAt || '').slice(0, 16);
+
+      const row = [
+        san(item.nr),
+        san(item.name),
+        san(street),
+        san(houseNr),
+        san(city),
+        gpsStr,
+        san(dateStr)
+      ];
+
+      // Alternujące tło
+      if (rowIdx % 2 === 0)
+        page.drawRectangle({ x:M-2, y:y-3, width:W-2*M+4, height:13, color:rgb(.96,.96,.97) });
+
+      // Czerwony pasek lewy dla wpisów bez GPS
+      if (!hasGps)
+        page.drawRectangle({ x:M-2, y:y-2, width:3, height:11, color:RED2 });
+
+      row.forEach((txt, i) => {
+        const clipped = clip(txt, maxW[i], i===0?bold:font, 8);
+        if (clipped) page.drawText(clipped, {
+          x: M + cols[i], y,
+          font: i === 0 ? bold : font,
+          size: 8,
+          color: (i === 0 && !hasGps) ? RED2 : (i === 5 && !hasGps ? GRAY : BLK)
+        });
+      });
+
+      y -= 13;
+      rowIdx++;
+    }
+
+    // Stopka
+    doc.getPages().forEach((pg, i, arr) => {
+      pg.drawText(
+        san('SOLID PATROL 110 | '+new Date().toLocaleDateString('pl-PL'))
+        + ' | Str. '+(i+1)+'/'+arr.length,
+        { x:M, y:15, font:font, size:7, color:GRAY });
+    });
+
+    const bytes = await doc.save();
+    const fname = (tab==='keys'?'klucze':'piloty')
+      + '_' + new Date().toISOString().slice(0,10) + '.pdf';
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(new Blob([bytes], {type:'application/pdf'})),
+      download: fname
+    });
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 1000);
+    const gpsOk = data.filter(i=>i.lat!=null).length;
+    setStatus('✓ PDF pobrany — '+data.length+' poz., '+gpsOk+' z GPS');
+  } catch(err) {
+    console.error(err);
+    setStatus('❌ PDF: ' + err.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EKSPORT XLSX – poprawiony układ: NR, NAZWA, ULICA, NR, MIASTO, GPS, DATA
+// ═══════════════════════════════════════════════════════════════
+function exportXlsx() {
+  document.getElementById('ddmenu').classList.remove('open');
+  const data = state[tab];
+  if (!data.length) { setStatus('Brak danych do eksportu.'); return; }
+
+  if (typeof XLSX === 'undefined') {
+    setStatus('❌ Biblioteka XLSX nie jest załadowana.');
+    return;
+  }
+
+  try {
+    const rows = data.map(item => {
+      // Używaj pól bezpośrednio z obiektu jeśli dostępne (z parsera PDF),
+      // w przeciwnym razie parsuj z pola address
+      let street  = item.street  || '';
+      let houseNr = item.houseNr || '';
+      let city    = item.city    || '';
+      if (!street && !city) {
+        const p = parseAddress(item.address);
+        street  = p.street;
+        houseNr = p.houseNr;
+        city    = p.city;
+      }
+      const gpsStr = (item.lat != null && item.lng != null)
+        ? item.lat.toFixed(6) + ', ' + item.lng.toFixed(6)
+        : '';
+      return {
+        'NR':        String(item.nr || ''),
+        'NAZWA':     item.name    || '',
+        'ULICA':     street       || '',
+        'NR DOMU':   houseNr      || '',
+        'MIASTO':    city         || 'Grudziądz',
+        'GPS':       gpsStr,
+        'LAT':       item.lat  != null ? item.lat  : '',
+        'LNG':       item.lng  != null ? item.lng  : '',
+        'DATA':      item.updatedAt || item.createdAt || ''
+      };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [
+      {wch:5}, {wch:30}, {wch:28}, {wch:10}, {wch:18},
+      {wch:26}, {wch:13}, {wch:13}, {wch:20}
+    ];
+
+    // Styl nagłówka
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (!ws[addr]) continue;
+      ws[addr].s = {
+        font: { bold: true, color: { rgb: 'FFFFFF' }, name: 'Arial', sz: 10 },
+        fill: { patternType: 'solid', fgColor: { rgb: 'C62828' } },
+        alignment: { horizontal: 'center' }
+      };
+    }
+    // Zamroź pierwszy wiersz
+    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, tab === 'keys' ? 'Klucze' : 'Piloty');
+
+    // Zakładka Info
+    const gpsOk  = data.filter(i => i.lat != null).length;
+    const meta   = XLSX.utils.aoa_to_sheet([
+      ['SOLID PATROL 110 – GRUDZIĄDZ'],
+      [''],
+      ['Typ:',      tab === 'keys' ? 'REJESTR KLUCZY' : 'REJESTR PILOTÓW'],
+      ['Eksport:',  new Date().toLocaleString('pl-PL')],
+      ['Pozycji:',  data.length],
+      ['Z GPS:',    gpsOk],
+      ['Bez GPS:',  data.length - gpsOk],
+    ]);
+    meta['!cols'] = [{wch:12},{wch:30}];
+    XLSX.utils.book_append_sheet(wb, meta, 'Info');
+
+    const fname = (tab === 'keys' ? 'klucze' : 'piloty')
+      + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
+    XLSX.writeFile(wb, fname);
+    setStatus('✓ XLSX pobrany (' + data.length + ' poz., ' + gpsOk + ' z GPS)');
+  } catch(err) {
+    console.error(err);
+    setStatus('❌ XLSX: ' + err.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERY
+// ═══════════════════════════════════════════════════════════════
+function saveToMem() {
+  localStorage.setItem(LS.keys,   JSON.stringify(state.keys));
+  localStorage.setItem(LS.pilots, JSON.stringify(state.pilots));
+  saveAutoBackup();   // ← zawsze zapisz auto-backup przy każdej zmianie
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('cnt-keys').textContent   = '(' + state.keys.length   + ')';
+  document.getElementById('cnt-pilots').textContent = '(' + state.pilots.length + ')';
+  document.getElementById('save-btn').disabled      = (state.keys.length + state.pilots.length) === 0;
+}
+
+function toggleDD(e) {
+  e.stopPropagation();
+  document.getElementById('ddmenu').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.getElementById('ddmenu').classList.remove('open');
+});
+</script>
+</body>
+</html>
